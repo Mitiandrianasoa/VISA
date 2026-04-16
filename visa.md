@@ -37,6 +37,8 @@ info dans le VISA transformable:
         - par type/ status:
             - investisseur et travailleur uniquement d'abord
 
+15-04-2026
+
 sprint 1:[fiche de renseignement, transcription de donnees pour une demande de nouveau titre]
     - saisie des informations 
     - case a cocher pour les pieces a fournir [https://www.madagascar-services.com/blog/fr/2017/03/07/carte-de-resident-visa-biometrique-a-madagascar/]
