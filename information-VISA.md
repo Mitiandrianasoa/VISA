@@ -1,0 +1,39 @@
+info demande VISA:
+    - [Etudiant]
+        - info personnelles:
+            - Nom
+            - prenom
+            - date et lieu de naissance
+            - numero de passeport valide (+15 mois apres la date de depart prevu)
+        - motif du sejour:
+            - etudiant
+            - duree exacte de la formation
+        - hebergement:
+            - adresse precise
+            - type de logement (cite U, bail, chez un tier)
+        - ressources financieres:
+            - montant mensuel disponible
+            - justificatifs (attestation de viremnet, prise en charge bancaire, bourse)
+        - donnees de contact:
+            - email
+            - numero portable 
+    - [Travailleur]
+        - info personnelles:
+            - Nom
+            - prenom
+            - date et lieu de naissance
+            - numero de passeport valide (+15 mois apres la date de depart prevu)
+        - motif du sejour:
+            - salarie (CDI/CDD), travailleur expatrie
+        - Contrat de travail
+        - diplome et CV (preuve de qualifications et experience professionnelle)
+        - informations employeur:
+            - entreprise
+            - attestation URSSAF/ MSA
+        - casier judiciaire
+        - hebergement:  
+            - adresse precise
+            - type de logement (cite U, bail, chez un tier)
+        - donnees de contact:
+            - email
+            - numero portable
