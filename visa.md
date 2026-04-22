@@ -37,12 +37,13 @@ info dans le VISA transformable:
         - par type/ status:
             - investisseur et travailleur uniquement d'abord
 
-15-04-2026
+15-04-2026 
 
 Team Lead: [Mitia 3145]
 
 sprint 1:[fiche de renseignement, transcription de donnees pour une demande de nouveau titre]
     - saisie des informations 
+    - saisir les informations des personnes qui demandent leur visa nouveau titre mais qui ne sont pas encore dans notre base de données (formulaire hafa mihitsy)
     - case a cocher pour les pieces a fournir [https://www.madagascar-services.com/blog/fr/2017/03/07/carte-de-resident-visa-biometrique-a-madagascar/]
 
 
