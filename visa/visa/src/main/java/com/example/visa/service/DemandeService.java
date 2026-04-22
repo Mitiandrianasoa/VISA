@@ -50,6 +50,7 @@ public class DemandeService {
     public List<Demande> getAllDemandes() {
         return demandeRepository.findAll();
     }
+
     private void validatePiecesCompletes(DemandeDTO demandeDTO) {
         if (demandeDTO.getIdTypeVisa() == null) {
             throw new IllegalArgumentException("Type de visa obligatoire");
@@ -91,7 +92,8 @@ public class DemandeService {
         demandeur.setPrenom(demandeDTO.getPrenom());
         demandeur.setDateNaissance(demandeDTO.getDateNaissance());
         demandeur.setIdNationalite(nationaliteRepository.findById(demandeDTO.getIdNationalite()).orElseThrow());
-        demandeur.setIdSituationFamiliale(situationFamilialeRepository.findById(demandeDTO.getIdSituationFamiliale()).orElseThrow());
+        demandeur.setIdSituationFamiliale(
+                situationFamilialeRepository.findById(demandeDTO.getIdSituationFamiliale()).orElseThrow());
         demandeur.setAdresseMada(demandeDTO.getAdresseMada());
         demandeur.setContact(demandeDTO.getContact());
         demandeur.setEmail(demandeDTO.getEmail());
@@ -113,7 +115,8 @@ public class DemandeService {
             visaTransformable.setNumero(demandeDTO.getVisaTransformable().getNumero());
             visaTransformable.setDateEntreeTerritoire(demandeDTO.getVisaTransformable().getDateEntreeTerritoire());
             visaTransformable.setLieuEntreeTerritoire(demandeDTO.getVisaTransformable().getLieuEntreeTerritoire());
-            visaTransformable.setNumeroVisaTransformable(demandeDTO.getVisaTransformable().getNumeroVisaTransformable());
+            visaTransformable
+                    .setNumeroVisaTransformable(demandeDTO.getVisaTransformable().getNumeroVisaTransformable());
             visaTransformable.setDateSortieTerritoire(demandeDTO.getVisaTransformable().getDateSortieTerritoire());
             visaTransformable = visaTransformableRepository.save(visaTransformable);
         }
@@ -140,5 +143,27 @@ public class DemandeService {
         }
 
         return demande;
+    }
+
+    public Demande getDemandeById(Integer id) {
+        return demandeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Demande non trouvée avec l'ID: " + id));
+    }
+
+    public void validerDemandes(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new RuntimeException("Aucune demande à valider");
+        }
+
+        // Récupérer le statut "Validé" (ID = 2, ajuster selon votre base de données)
+        StatutDemande statutValide = statutDemandeRepository.findById(2)
+                .orElseThrow(() -> new RuntimeException("Statut 'Validé' non trouvé"));
+
+        for (Integer id : ids) {
+            Demande demande = demandeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Demande non trouvée avec l'ID: " + id));
+            demande.setIdStatut(statutValide);
+            demandeRepository.save(demande);
+        }
     }
 }

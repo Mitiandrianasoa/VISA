@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/demandes")
@@ -61,5 +62,41 @@ public class DemandeController {
     @GetMapping
     public ResponseEntity<List<Demande>> getAllDemandes() {
         return ResponseEntity.ok(demandeService.getAllDemandes());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDemandeById(@PathVariable Integer id) {
+        try {
+            Demande demande = demandeService.getDemandeById(id);
+            return ResponseEntity.ok(demande);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = e.getMessage();
+            });
+        }
+    }
+
+    @PostMapping("/valider")
+    public ResponseEntity<?> validerDemandes(@RequestBody Map<String, List<Integer>> payload) {
+        try {
+            List<Integer> ids = payload.get("ids");
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest().body(new Object() {
+                    public boolean success = false;
+                    public String message = "Aucune demande à valider";
+                });
+            }
+            demandeService.validerDemandes(ids);
+            return ResponseEntity.ok(new Object() {
+                public boolean success = true;
+                public String message = ids.size() + " demande(s) validée(s) avec succès";
+            });
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = e.getMessage();
+            });
+        }
     }
 }
