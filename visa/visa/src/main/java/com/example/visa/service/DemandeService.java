@@ -4,12 +4,15 @@ import com.example.visa.dto.DemandeDTO;
 import com.example.visa.dto.VisaTransformableDTO;
 import com.example.visa.entities.*;
 import com.example.visa.repository.*;
+import com.example.visa.service.exception.PiecesIncompletesException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +50,41 @@ public class DemandeService {
     public List<Demande> getAllDemandes() {
         return demandeRepository.findAll();
     }
+    private void validatePiecesCompletes(DemandeDTO demandeDTO) {
+        if (demandeDTO.getIdTypeVisa() == null) {
+            throw new IllegalArgumentException("Type de visa obligatoire");
+        }
+
+        // Pièces attendues pour ce type de visa (communes + spécifiques)
+        List<PieceJustificative> piecesAttendues = pieceJustificativeRepository
+                .findPiecesByTypeVisa(demandeDTO.getIdTypeVisa());
+
+        // On ne force que les pièces obligatoires
+        Set<Integer> idsObligatoires = piecesAttendues.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getObligatoire()))
+                .map(PieceJustificative::getId)
+                .collect(Collectors.toSet());
+
+        // Pièces fournies par le client
+        Set<Integer> idsFournis = Optional.ofNullable(demandeDTO.getPieceIds())
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Pièces manquantes
+        Set<Integer> idsManquants = new HashSet<>(idsObligatoires);
+        idsManquants.removeAll(idsFournis);
+
+        if (!idsManquants.isEmpty()) {
+            // message strict demandé:
+            throw new PiecesIncompletesException("pieces incomplete");
+        }
+    }
 
     public Demande createDemande(DemandeDTO demandeDTO) {
+
+        validatePiecesCompletes(demandeDTO); // <-- IMPORTANT: avant tout save
         // Créer le demandeur
         Demandeur demandeur = new Demandeur();
         demandeur.setNom(demandeDTO.getNom());
