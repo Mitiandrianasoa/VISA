@@ -7,7 +7,7 @@ REM ========================================
 REM Modifiez ces variables selon votre environnement
 
 REM Chemin vers votre installation Tomcat
-set TOMCAT_HOME=E:\Logiciel\apache-tomcat-10.1.34
+set TOMCAT_HOME=D:\tomcat-10.1.28-windows-x64\apache-tomcat-10.1.28
 
 REM ========================================
 REM DEPLOIEMENT
