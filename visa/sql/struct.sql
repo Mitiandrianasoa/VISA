@@ -1,8 +1,6 @@
 -- Création des tables
-CREATE DATABASE visa;
-
-\c visa
-
+create database visa;
+\c visa;
 CREATE TABLE situation_familiale (
     id SERIAL PRIMARY KEY,
     libelle VARCHAR(100) NOT NULL
@@ -57,6 +55,7 @@ CREATE TABLE piece_justificative (
     commun BOOLEAN DEFAULT FALSE,
     obligatoire BOOLEAN DEFAULT FALSE
 );
+
 
 CREATE TABLE piece_specifique_type_visa (
     id_type_visa INTEGER NOT NULL REFERENCES type_visa(id),
@@ -166,3 +165,7 @@ COMMENT ON COLUMN demande.id_visa_transformable IS 'Optionnel - requis uniquemen
 COMMENT ON TABLE visa_transformable IS 'Visa existant pouvant être transformé';
 COMMENT ON TABLE type_demande IS 'Types de demande: renouvellement, duplicata, transformation';
 COMMENT ON TABLE piece_justificative IS 'Documents requis pour les demandes';
+
+SELECT setval('passeport_id_seq', (SELECT MAX(id) FROM passeport));
+SELECT setval('demandeur_id_seq', (SELECT MAX(id) FROM demandeur));
+SELECT setval('demande_id_seq', (SELECT MAX(id) FROM demande));

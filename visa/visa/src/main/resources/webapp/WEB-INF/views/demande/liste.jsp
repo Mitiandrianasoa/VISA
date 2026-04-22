@@ -1,0 +1,137 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Demandes de Visa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-nouvelle {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .btn-nouvelle:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Liste des Demandes de Visa</h1>
+        <a href="/sprint-framework/demande/nouveau" class="btn-nouvelle">Nouvelle Demande</a>
+        
+        <div id="demandesContainer">
+            <div class="loading">Chargement des demandes...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDemandes();
+        });
+
+        function loadDemandes() {
+            const container = document.getElementById('demandesContainer');
+            
+            fetch('http://localhost:8000/api/demandes')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Données demandes reçues:', data);
+                    if (data && data.length > 0) {
+                        let html = '<table>';
+                        html += '<thead>';
+                        html += '<tr>';
+                        html += '<th>ID</th>';
+                        html += '<th>Nom</th>';
+                        html += '<th>Prénom</th>';
+                        html += '<th>Type Visa</th>';
+                        html += '<th>Date Demande</th>';
+                        html += '<th>Statut</th>';
+                        html += '</tr>';
+                        html += '</thead>';
+                        html += '<tbody>';
+                        
+                        data.forEach(function(demande) {
+                            const nom = demande.idDemandeur ? demande.idDemandeur.nom : 'N/A';
+                            const prenom = demande.idDemandeur ? demande.idDemandeur.prenom : 'N/A';
+                            const typeVisa = demande.idTypeVisa ? demande.idTypeVisa.libelle : 'N/A';
+                            const dateDemande = demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'N/A';
+                            const statut = demande.idStatut ? demande.idStatut.libelle : 'N/A';
+                            
+                            html += '<tr>';
+                            html += '<td>' + demande.id + '</td>';
+                            html += '<td>' + nom + '</td>';
+                            html += '<td>' + prenom + '</td>';
+                            html += '<td>' + typeVisa + '</td>';
+                            html += '<td>' + dateDemande + '</td>';
+                            html += '<td>' + statut + '</td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody>';
+                        html += '</table>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<p>Aucune demande trouvée.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="error">Erreur lors du chargement des demandes.</div>';
+                });
+        }
+    </script>
+</body>
+</html>
