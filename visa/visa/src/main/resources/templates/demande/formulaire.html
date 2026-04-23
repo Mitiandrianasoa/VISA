@@ -280,9 +280,10 @@
                         console.log('Pièce:', piece);
                         var obligatoireClass = piece.obligatoire ? 'obligatoire' : '';
                         var label = piece.libelle || piece.code || 'Sans nom';
+                        var facultatifText = piece.obligatoire ? '' : ' (facultatif)';
                         html += '<div class="checkbox-item ' + obligatoireClass + '">' +
                             '<input type="checkbox" name="pieceIds" value="' + piece.id + '" id="piece_' + piece.id + '">' +
-                            '<label for="piece_' + piece.id + '">' + label + '</label>' +
+                            '<label for="piece_' + piece.id + '">' + label + facultatifText + '</label>' +
                             '</div>';
                     });
                     container.innerHTML = html;
