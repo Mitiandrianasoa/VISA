@@ -475,20 +475,13 @@
         const searchSection = document.getElementById('searchSection');
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
         
-        // Si type de demande = Duplicata (id=2), afficher la section de recherche et cacher visa transformable
+        // Si type de demande = Duplicata (id=2), afficher la section de recherche
         if (typeDemande === '2') {
             searchSection.style.display = 'block';
-            if (visaTransformableSection) {
-                visaTransformableSection.style.display = 'none';
+            // Si aucun demandeur sélectionné, afficher visa transformable (nouveau demandeur)
+            if (!selectedDemandeur && visaTransformableSection) {
+                visaTransformableSection.style.display = 'block';
             }
-            // Vider les champs du visa transformable
-            document.getElementById('hasVisaTransformable').checked = false;
-            document.getElementById('visaTransformableFields').style.display = 'none';
-            document.getElementById('visaNumero').value = '';
-            document.getElementById('visaDateEntree').value = '';
-            document.getElementById('visaLieuEntree').value = '';
-            document.getElementById('visaNumeroTransformable').value = '';
-            document.getElementById('visaDateSortie').value = '';
         } else {
             searchSection.style.display = 'none';
             selectedDemandeur = null;
@@ -534,6 +527,20 @@
         selectedDemandeur = id;
         document.getElementById('searchResults').innerHTML = '<p style="color: #065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
         
+        // Cacher la section visa transformable car on utilise le passeport existant
+        const visaTransformableSection = document.querySelector('.visa-transformable-section');
+        if (visaTransformableSection) {
+            visaTransformableSection.style.display = 'none';
+        }
+        // Vider les champs du visa transformable
+        document.getElementById('hasVisaTransformable').checked = false;
+        document.getElementById('visaTransformableFields').style.display = 'none';
+        document.getElementById('visaNumero').value = '';
+        document.getElementById('visaDateEntree').value = '';
+        document.getElementById('visaLieuEntree').value = '';
+        document.getElementById('visaNumeroTransformable').value = '';
+        document.getElementById('visaDateSortie').value = '';
+        
         // Charger les données du demandeur et pré-remplir le formulaire
         fetch('http://localhost:8000/api/demandes/demandeurs/' + id)
             .then(response => response.json())
@@ -563,9 +570,6 @@
                         .catch(error => {
                             console.error('Error loading passeports:', error);
                         });
-                    
-                    // Pour un duplicata, on ne charge pas le visa transformable car on utilise le passeport existant
-                    // Le visa transformable est caché par checkTypeDemande quand typeDemande = Duplicata
                 }
             })
             .catch(error => {
@@ -646,7 +650,7 @@
         // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
         if (selectedDemandeur) {
             data.idDemandeur = selectedDemandeur;
-            // Pour un duplicata, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
+            // Pour un duplicata avec demandeur existant, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
             delete data.visaTransformable;
         }
 

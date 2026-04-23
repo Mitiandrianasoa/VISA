@@ -48,7 +48,7 @@ public class DemandeService {
     }
 
     public List<Demandeur> rechercherDemandeur(String nom, String prenom) {
-        return demandeurRepository.findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCase(nom, prenom);
+        return demandeurRepository.findByNomAndPrenomContainingIgnoreCase(nom, prenom);
     }
 
     public Demandeur getDemandeurById(Integer id) {
