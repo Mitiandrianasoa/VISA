@@ -237,6 +237,23 @@
     <script>
         let demandesData = [];
 
+        // Fonction pour vérifier si une valeur est valide (pas null, pas undefined, pas "N/A", pas vide)
+        function isValidValue(value) {
+            if (!value) return false;
+            if (typeof value === 'string' && (value.trim() === '' || value.trim().toUpperCase() === 'N/A')) {
+                return false;
+            }
+            return true;
+        }
+
+        // Fonction pour obtenir le demandeur d'une demande
+        function getDemandeur(demande) {
+            if (demande && demande.idVisaTransformable && demande.idVisaTransformable.idPasseport && demande.idVisaTransformable.idPasseport.idDemandeur) {
+                return demande.idVisaTransformable.idPasseport.idDemandeur;
+            }
+            return null;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Créer la modal
             const modal = document.createElement('div');
@@ -254,6 +271,28 @@
             // Charger les demandes
             loadDemandes();
         });
+
+        function validateDemande(demande) {
+            const errors = [];
+            const demandeur = getDemandeur(demande);
+            
+            if (!demandeur || !isValidValue(demandeur.nom)) {
+                errors.push('Nom du demandeur manquant');
+            }
+            if (!demandeur || !isValidValue(demandeur.prenom)) {
+                errors.push('Prénom du demandeur manquant');
+            }
+            if (!demande.idTypeVisa || !isValidValue(demande.idTypeVisa.libelle)) {
+                errors.push('Type de visa manquant');
+            }
+            if (!demande.dateDemande) {
+                errors.push('Date de demande manquante');
+            }
+            if (!demande.idStatut || !isValidValue(demande.idStatut.libelle)) {
+                errors.push('Statut manquant');
+            }
+            return errors;
+        }
 
         function loadDemandes() {
             const container = document.getElementById('demandesContainer');
@@ -279,29 +318,40 @@
                         html += '<tbody>';
                         
                         data.forEach(function(demande) {
-                            const nom = demande.idDemandeur ? demande.idDemandeur.nom : 'N/A';
-                            const prenom = demande.idDemandeur ? demande.idDemandeur.prenom : 'N/A';
-                            const typeVisa = demande.idTypeVisa ? demande.idTypeVisa.libelle : 'N/A';
-                            const dateDemande = demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'N/A';
-                            const statut = demande.idStatut ? demande.idStatut.libelle : 'N/A';
-                            const isValidee = demande.idStatut && demande.idStatut.id === 2;
+                            const errors = validateDemande(demande);
+                            const demandeur = getDemandeur(demande);
                             
-                            html += '<tr>';
-                            html += '<td><strong>' + demande.id + '</strong></td>';
-                            html += '<td>' + nom + '</td>';
-                            html += '<td>' + prenom + '</td>';
-                            html += '<td>' + typeVisa + '</td>';
-                            html += '<td>' + dateDemande + '</td>';
-                            html += '<td><span style="background-color: #e3f2fd; padding: 4px 8px; border-radius: 3px;">' + statut + '</span></td>';
-                            html += '<td style="text-align: center; display: flex; gap: 8px; justify-content: center;">';
-                            html += '<button class="btn-details" onclick="showDetails(' + demande.id + ')">Détails</button>';
-                            if (isValidee) {
-                                html += '<button class="status-validee" disabled>Validée</button>';
+                            if (errors.length > 0) {
+                                html += '<tr style="background-color: #ffe6e6;">';
+                                html += '<td><strong>' + demande.id + '</strong></td>';
+                                html += '<td colspan="5"><div class="error" style="margin: 0; padding: 8px;"><strong>Erreur(s) de données:</strong><br>' + errors.join('<br>') + '</div></td>';
+                                html += '<td></td>';
+                                html += '</tr>';
                             } else {
-                                html += '<button class="btn-valider" style="padding: 8px 12px; font-size: 13px; margin: 0;" onclick="validerUneDemande(' + demande.id + ')">Valider</button>';
+                                const nom = demandeur.nom;
+                                const prenom = demandeur.prenom;
+                                const typeVisa = demande.idTypeVisa.libelle;
+                                const dateDemande = new Date(demande.dateDemande).toLocaleDateString('fr-FR');
+                                const statut = demande.idStatut.libelle;
+                                const isValidee = demande.idStatut && demande.idStatut.id === 2;
+                                
+                                html += '<tr>';
+                                html += '<td><strong>' + demande.id + '</strong></td>';
+                                html += '<td>' + nom + '</td>';
+                                html += '<td>' + prenom + '</td>';
+                                html += '<td>' + typeVisa + '</td>';
+                                html += '<td>' + dateDemande + '</td>';
+                                html += '<td><span style="background-color: #e3f2fd; padding: 4px 8px; border-radius: 3px;">' + statut + '</span></td>';
+                                html += '<td style="text-align: center; display: flex; gap: 8px; justify-content: center;">';
+                                html += '<button class="btn-details" onclick="showDetails(' + demande.id + ')">Détails</button>';
+                                if (isValidee) {
+                                    html += '<button class="status-validee" disabled>Validée</button>';
+                                } else {
+                                    html += '<button class="btn-valider" style="padding: 8px 12px; font-size: 13px; margin: 0;" onclick="validerUneDemande(' + demande.id + ')">Valider</button>';
+                                }
+                                html += '</td>';
+                                html += '</tr>';
                             }
-                            html += '</td>';
-                            html += '</tr>';
                         });
                         
                         html += '</tbody>';
@@ -333,19 +383,27 @@
         function showDetails(demandeId) {
             const demande = demandesData.find(d => d.id === demandeId);
             if (demande) {
+                const errors = validateDemande(demande);
+                const demandeur = getDemandeur(demande);
+                
                 let detailsHtml = '';
+                
+                if (errors.length > 0) {
+                    detailsHtml += '<div class="error" style="margin-bottom: 20px;"><strong>Attention - Erreurs détectées:</strong><br>' + errors.join('<br>') + '</div>';
+                }
+                
                 detailsHtml += '<div class="detail-info"><span class="detail-label">ID Demande:</span><span class="detail-value">' + demande.id + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Nom:</span><span class="detail-value">' + (demande.idDemandeur ? demande.idDemandeur.nom : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Prénom:</span><span class="detail-value">' + (demande.idDemandeur ? demande.idDemandeur.prenom : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Date de naissance:</span><span class="detail-value">' + (demande.idDemandeur && demande.idDemandeur.dateNaissance ? new Date(demande.idDemandeur.dateNaissance).toLocaleDateString('fr-FR') : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Nationalité:</span><span class="detail-value">' + (demande.idDemandeur && demande.idDemandeur.idNationalite ? demande.idDemandeur.idNationalite.libelle : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Situation familiale:</span><span class="detail-value">' + (demande.idDemandeur && demande.idDemandeur.idSituationFamiliale ? demande.idDemandeur.idSituationFamiliale.libelle : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Adresse Madagascar:</span><span class="detail-value">' + (demande.idDemandeur ? demande.idDemandeur.adresseMada : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Contact:</span><span class="detail-value">' + (demande.idDemandeur ? demande.idDemandeur.contact : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Email:</span><span class="detail-value">' + (demande.idDemandeur ? demande.idDemandeur.email : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa ? demande.idTypeVisa.libelle : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'N/A') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value">' + (demande.idStatut ? demande.idStatut.libelle : 'N/A') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Nom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.nom) ? demandeur.nom : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Prénom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.prenom) ? demandeur.prenom : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Date de naissance:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.dateNaissance) ? new Date(demandeur.dateNaissance).toLocaleDateString('fr-FR') : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Nationalité:</span><span class="detail-value">' + (demandeur && demandeur.idNationalite && isValidValue(demandeur.idNationalite.libelle) ? demandeur.idNationalite.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Situation familiale:</span><span class="detail-value">' + (demandeur && demandeur.idSituationFamiliale && isValidValue(demandeur.idSituationFamiliale.libelle) ? demandeur.idSituationFamiliale.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Adresse Madagascar:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.adresseMada) ? demandeur.adresseMada : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Contact:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.contact) ? demandeur.contact : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Email:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.email) ? demandeur.email : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle) ? demande.idTypeVisa.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value">' + (demande.idStatut && isValidValue(demande.idStatut.libelle) ? demande.idStatut.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
                 
                 document.getElementById('detailsContent').innerHTML = detailsHtml;
                 document.getElementById('detailsModal').style.display = 'block';
