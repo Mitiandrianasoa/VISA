@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan et PDF - Demande de Visa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        .info-box p {
+            color: #0277BD;
+            margin: 5px 0;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #2196F3;
+            padding-bottom: 10px;
+        }
+        .upload-area {
+            border: 2px dashed #2196F3;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #1976D2;
+            background-color: #f0f8ff;
+        }
+        .upload-area.dragover {
+            border-color: #1976D2;
+            background-color: #e3f2fd;
+        }
+        .upload-area p {
+            color: #666;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-list {
+            margin-top: 20px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .file-size {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1976D2;
+        }
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #388E3C;
+        }
+        .btn-danger {
+            background-color: #F44336;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #D32F2F;
+        }
+        .btn-warning {
+            background-color: #FF9800;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #E65100;
+        }
+        .btn-secondary {
+            background-color: #757575;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #616161;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .actions .btn {
+            flex: 1;
+            min-width: 150px;
+        }
+        .message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-info {
+            background-color: #fff3cd;
+            border-left: 4px solid #FFC107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status-info.active {
+            display: block;
+        }
+        .status-info p {
+            color: #856404;
+            margin: 5px 0;
+        }
+        .demande-id {
+            text-align: center;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .demande-id strong {
+            color: #2196F3;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Scan et Génération PDF</h1>
+        <p class="subtitle">Gestion des uploads de documents et génération de récépicé</p>
+
+        <div class="demande-id">
+            <p>ID Demande: <strong id="demandeId">-</strong></p>
+        </div>
+
+        <div id="messageContainer" class="message"></div>
+
+        <div class="info-box">
+            <p><strong>ℹ️ Processus:</strong></p>
+            <p>1. Téléchargez les documents scannés</p>
+            <p>2. Vérifiez que tous les fichiers sont présents</p>
+            <p>3. Générez le PDF du récépicé</p>
+            <p>4. Complétez le scan (le dossier devient non-modifiable)</p>
+        </div>
+
+        <div class="status-info" id="statusInfo">
+            <p><strong>⚠️ Attention:</strong> Cette demande est en statut "Scan terminé" et ne peut plus être modifiée.</p>
+        </div>
+
+        <!-- Section Upload -->
+        <div class="section">
+            <h2>📤 Télécharger des documents</h2>
+            
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <p><strong>Cliquez pour télécharger</strong> ou glissez-déposez vos fichiers</p>
+                <p style="font-size: 12px; color: #999;">JPG, PNG, PDF - Max 50MB</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.pdf">
+
+            <div id="uploadProgress" class="loading">
+                <div class="spinner"></div>
+                <p>Téléchargement en cours...</p>
+            </div>
+
+            <div class="file-list" id="fileList"></div>
+        </div>
+
+        <!-- Section Liste des fichiers -->
+        <div class="section">
+            <h2>📋 Fichiers uploadés</h2>
+            <div id="scanFilesList">
+                <p style="text-align: center; color: #999;">Aucun fichier uploadé</p>
+            </div>
+        </div>
+
+        <!-- Section Actions -->
+        <div class="section">
+            <h2>⚙️ Actions</h2>
+            <div class="actions">
+                <button class="btn btn-success" id="btnGeneratePDF" onclick="generatePDF()">
+                    📄 Générer PDF
+                </button>
+                <button class="btn btn-warning" id="btnCompleteScan" onclick="completeScan()">
+                    ✓ Compléter le Scan
+                </button>
+                <button class="btn btn-secondary" onclick="goBack()">
+                    ← Retour
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        let currentDemandeId = null;
+
+        // Récupérer l'ID de la demande depuis l'URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDemandeId = urlParams.get('id');
+            
+            if (!currentDemandeId) {
+                showMessage('error', 'ID de demande manquant');
+                return;
+            }
+            
+            document.getElementById('demandeId').textContent = currentDemandeId;
+            loadScanFiles();
+            checkDemandStatus();
+        });
+
+        // Upload - Drag & Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (!currentDemandeId) {
+                showMessage('error', 'ID de demande manquant');
+                return;
+            }
+
+            Array.from(files).forEach(file => {
+                uploadFile(file);
+            });
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('uploadProgress').classList.add('active');
+
+            fetch(`/api/demandes/${currentDemandeId}/scan/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('uploadProgress').classList.remove('active');
+                if (data.success) {
+                    showMessage('success', file.name + ' uploadé avec succès');
+                    loadScanFiles();
+                } else {
+                    showMessage('error', 'Erreur: ' + data.message);
+                }
+            })
+            .catch(error => {
+                document.getElementById('uploadProgress').classList.remove('active');
+                showMessage('error', 'Erreur lors de l\'upload: ' + error.message);
+            });
+        }
+
+        function loadScanFiles() {
+            fetch(`/api/demandes/${currentDemandeId}/scan/files`)
+                .then(response => response.json())
+                .then(data => {
+                    const filesList = document.getElementById('scanFilesList');
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        let html = '';
+                        data.data.forEach(file => {
+                            html += `
+                                <div class="file-item">
+                                    <div class="file-info">
+                                        <div class="file-name">📎 ${file.nomFichier}</div>
+                                        <div class="file-size">Taille: ${formatFileSize(file.tailleFichier)} | Uploadé: ${new Date(file.dateUpload).toLocaleDateString('fr-FR')}</div>
+                                    </div>
+                                    <div class="file-actions">
+                                        <button class="btn btn-danger btn-small" onclick="deleteFile(${file.id})">Supprimer</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        filesList.innerHTML = html;
+                    } else {
+                        filesList.innerHTML = '<p style="text-align: center; color: #999;">Aucun fichier uploadé</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+        }
+
+        function deleteFile(scanFileId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?')) {
+                fetch(`/api/demandes/scan/${scanFileId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('success', 'Fichier supprimé avec succès');
+                        loadScanFiles();
+                    } else {
+                        showMessage('error', data.message);
+                    }
+                })
+                .catch(error => showMessage('error', 'Erreur: ' + error.message));
+            }
+        }
+
+        function generatePDF() {
+            showMessage('info', 'Génération du PDF...');
+            
+            fetch(`/api/demandes/${currentDemandeId}/pdf`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob().then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `recepice_demande_${currentDemandeId}.pdf`;
+                            link.click();
+                            window.URL.revokeObjectURL(url);
+                            showMessage('success', 'PDF généré et téléchargé avec succès');
+                        });
+                    } else {
+                        return response.json().then(data => {
+                            throw new Error(data.message);
+                        });
+                    }
+                })
+                .catch(error => showMessage('error', 'Erreur: ' + error.message));
+        }
+
+        function completeScan() {
+            if (!confirm('Êtes-vous sûr ? Après cette action, le dossier ne pourra plus être modifié.')) {
+                return;
+            }
+
+            fetch(`/api/demandes/${currentDemandeId}/scan/completer`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('success', data.message);
+                    checkDemandStatus();
+                    setTimeout(() => loadScanFiles(), 500);
+                } else {
+                    showMessage('error', data.message);
+                }
+            })
+            .catch(error => showMessage('error', 'Erreur: ' + error.message));
+        }
+
+        function checkDemandStatus() {
+            fetch(`/api/demandes/${currentDemandeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.idStatut && data.idStatut.code === 'SCAN_TERMINE') {
+                        document.getElementById('statusInfo').classList.add('active');
+                        document.getElementById('uploadArea').style.pointerEvents = 'none';
+                        document.getElementById('uploadArea').style.opacity = '0.5';
+                        document.getElementById('btnCompleteScan').disabled = true;
+                        document.getElementById('fileInput').disabled = true;
+                    } else {
+                        document.getElementById('statusInfo').classList.remove('active');
+                        document.getElementById('uploadArea').style.pointerEvents = 'auto';
+                        document.getElementById('uploadArea').style.opacity = '1';
+                        document.getElementById('btnCompleteScan').disabled = false;
+                        document.getElementById('fileInput').disabled = false;
+                    }
+                })
+                .catch(error => console.error('Erreur:', error));
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function showMessage(type, message) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.className = 'message ' + type;
+            messageContainer.textContent = message;
+            
+            setTimeout(() => {
+                messageContainer.className = 'message';
+            }, 5000);
+        }
+
+        function goBack() {
+            window.location.href = '/demande/liste';
+        }
+    </script>
+</body>
+</html>

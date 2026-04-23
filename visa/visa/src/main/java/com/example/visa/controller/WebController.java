@@ -22,16 +22,23 @@ public class WebController {
         List<Nationalite> nationalites = demandeService.getAllNationalites();
         List<SituationFamiliale> situationsFamiliales = demandeService.getAllSituationsFamiliales();
         List<TypeVisa> typesVisa = demandeService.getAllTypesVisa();
-        
+
         model.addAttribute("nationalites", nationalites);
         model.addAttribute("situationsFamiliales", situationsFamiliales);
         model.addAttribute("typesVisa", typesVisa);
-        
+
         return "demande/formulaire";
     }
 
     @GetMapping("/demande/liste")
     public String showListe() {
         return "demande/liste";
+    }
+
+    @GetMapping("/demande/scan")
+    public String showScanPage(@org.springframework.web.bind.annotation.RequestParam(name = "id") Integer demandeId,
+            Model model) {
+        model.addAttribute("demandeId", demandeId);
+        return "demande/scan";
     }
 }
