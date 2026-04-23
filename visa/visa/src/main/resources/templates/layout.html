@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">Visa Madagascar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #2c5282 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 3px solid #4a90d9;
+        }
+        
+        .sidebar-nav a svg {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+        }
+        
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 28px;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+        
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4a90d9;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 10px 0;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .sidebar-nav a span {
+                display: none;
+            }
+            
+            .sidebar-nav a {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .sidebar-nav a svg {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 60px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Visa Madagascar</h2>
+            <p>Système de gestion</p>
+        </div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/demande/nouveau" th:classappend="${#request.requestURI == '/demande/nouveau' ? 'active' : ''}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nouvelle Demande</span>
+                </a>
+            </li>
+            <li>
+                <a href="/demande/liste" th:classappend="${#request.requestURI == '/demande/liste' ? 'active' : ''}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Liste des Demandes</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1 th:replace="${header}">Titre de la page</h1>
+                <p th:replace="${subtitle}">Sous-titre de la page</p>
+            </div>
+            
+            <div th:replace="${content}">
+                <!-- Contenu de la page -->
+            </div>
+        </div>
+    </main>
+</body>
+</html>
