@@ -18,6 +18,9 @@ public class DemandeDTO {
     private String contact;
     private String email;
     
+    // ID du demandeur existant (pour duplicata)
+    private Integer idDemandeur;
+    
     // Passeport
     private String numeroPasseport;
     private LocalDate dateDelivrancePasseport;
