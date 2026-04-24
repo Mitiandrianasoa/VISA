@@ -434,6 +434,15 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="margin-top: 25px;">Soumettre la demande</button>
+                    <div id="qrSection" style="display:none; margin-top:20px;">
+                        <h2>QR Code de la demande</h2>
+                        <p id="qrInfo" style="color:#64748b;"></p>
+                        <img id="qrImage" alt="QR Code demande" style="max-width:300px; border:1px solid #e2e8f0; border-radius:8px;" />
+                        <div style="margin-top:12px;">
+                            <a id="qrDownloadLink" class="btn btn-secondary" download="qrcode-demande.png">Télécharger QR</a>
+                            <a href="/demande/liste" class="btn btn-primary" style="margin-left:8px;">Aller à la liste</a>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -520,7 +529,26 @@
             .then(result => {
                 console.log('Result:', result);
                 if (result.success) {
-                    window.location.href = '/demande/liste';
+                    const numeroDemande = result.id; // id retourné par ton API createDemande
+                    const numeroPasseport = data.numeroPasseport;
+
+                    const qrUrl = 'http://localhost:8000/api/qrcode/generate-demande'
+                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
+                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
+                        + '&size=300';
+
+                    const qrSection = document.getElementById('qrSection');
+                    const qrImage = document.getElementById('qrImage');
+                    const qrInfo = document.getElementById('qrInfo');
+                    const qrDownloadLink = document.getElementById('qrDownloadLink');
+
+                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
+                    qrImage.src = qrUrl;
+                    qrDownloadLink.href = qrUrl;
+                    qrSection.style.display = 'block';
+
+                    // Optionnel: désactiver le submit après succès
+                    // document.querySelector('#demandeForm button[type="submit"]').disabled = true;
                 } else {
                     alert('Erreur: ' + result.message);
                 }

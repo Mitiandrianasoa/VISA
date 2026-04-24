@@ -15,6 +15,34 @@ public class QRCodeController {
     @Autowired
     private QRCodeService qrCodeService;
 
+
+    @GetMapping(value = "/generate-demande", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> generateQRCodeForDemande(
+            @RequestParam String numeroDemande,
+            @RequestParam String numeroPasseport,
+            @RequestParam(defaultValue = "300") int size) {
+
+        try {
+            // Construire l'URL de l'application Vue avec les paramètres
+            String vueAppUrl = String.format(
+                    "http://localhost:5173/?numeroDemande=%s&numeroPasseport=%s",
+                    numeroDemande,
+                    numeroPasseport
+            );
+
+            byte[] qrCodeImage = qrCodeService.generateQRCode(vueAppUrl, size, size);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(qrCodeImage);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
     /**
      * Génère un QR code qui pointe vers l'URL fournie
      * @param url L'URL à encoder (ex: https://monsite.com/page/123)

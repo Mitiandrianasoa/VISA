@@ -27,7 +27,7 @@ public class WebController {
         model.addAttribute("situationsFamiliales", situationsFamiliales);
         model.addAttribute("typesVisa", typesVisa);
         
-        return "demande/formulaire";
+        return "demande/formulaire-QR";
     }
 
     @GetMapping("/demande/liste")
