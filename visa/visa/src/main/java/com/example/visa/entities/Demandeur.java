@@ -7,6 +7,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -47,5 +48,8 @@ public class Demandeur {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "idDemandeur", fetch = FetchType.LAZY)
+    private List<Passeport> passeports;
 
 }

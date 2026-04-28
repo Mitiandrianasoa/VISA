@@ -3,6 +3,7 @@ package com.example.visa.controller;
 import com.example.visa.entities.Nationalite;
 import com.example.visa.entities.SituationFamiliale;
 import com.example.visa.entities.TypeVisa;
+import com.example.visa.entities.TypeDemande;
 import com.example.visa.service.DemandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -22,12 +23,29 @@ public class WebController {
         List<Nationalite> nationalites = demandeService.getAllNationalites();
         List<SituationFamiliale> situationsFamiliales = demandeService.getAllSituationsFamiliales();
         List<TypeVisa> typesVisa = demandeService.getAllTypesVisa();
+        List<TypeDemande> typesDemande = demandeService.getAllTypesDemande();
         
         model.addAttribute("nationalites", nationalites);
         model.addAttribute("situationsFamiliales", situationsFamiliales);
         model.addAttribute("typesVisa", typesVisa);
+        model.addAttribute("typesDemande", typesDemande);
         
         return "demande/formulaire";
+    }
+
+    @GetMapping("/demande/duplicata")
+    public String showDuplicata(Model model) {
+        List<Nationalite> nationalites = demandeService.getAllNationalites();
+        List<SituationFamiliale> situationsFamiliales = demandeService.getAllSituationsFamiliales();
+        List<TypeVisa> typesVisa = demandeService.getAllTypesVisa();
+        List<TypeDemande> typesDemande = demandeService.getAllTypesDemande();
+        
+        model.addAttribute("nationalites", nationalites);
+        model.addAttribute("situationsFamiliales", situationsFamiliales);
+        model.addAttribute("typesVisa", typesVisa);
+        model.addAttribute("typesDemande", typesDemande);
+        
+        return "demande/duplicata";
     }
 
     @GetMapping("/demande/liste")
