@@ -552,6 +552,8 @@
                             html += '<td><span style="background-color: #e3f2fd; padding: 4px 8px; border-radius: 3px;">' + statut + '</span></td>';
                             html += '<td style="text-align: center; display: flex; gap: 8px; justify-content: center;">';
                             html += '<button class="btn-details" onclick="showDetails(' + demande.id + ')">Détails</button>';
+                            html += '<button class="btn-pdf" style="padding: 8px 12px; font-size: 13px; margin: 0; background-color: #d32f2f; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="generatePDF(' + demande.id + ')">PDF</button>';
+                            html += '<button class="btn-scan" style="padding: 8px 12px; font-size: 13px; margin: 0; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="goToScan(' + demande.id + ')">Scan</button>';
                             if (isValidee) {
                                 html += '<button class="status-validee" disabled>Validée</button>';
                             } else {
@@ -611,6 +613,13 @@
                 detailsHtml += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle) ? demande.idTypeVisa.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
                 detailsHtml += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
                 detailsHtml += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value">' + (demande.idStatut && isValidValue(demande.idStatut.libelle) ? demande.idStatut.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                
+                // Ajouter le bouton "Aller au Scan" s'il y a au moins les données de base
+                if (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle)) {
+                    detailsHtml += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">';
+                    detailsHtml += '<button class="btn btn-primary" onclick="goToScan(' + demande.id + ')" style="padding: 10px 20px; font-size: 14px; background-color: #10b981; width: 100%;">📤 Aller au Scan</button>';
+                    detailsHtml += '</div>';
+                }
                 
                 document.getElementById('detailsContent').innerHTML = detailsHtml;
                 document.getElementById('detailsModal').style.display = 'block';
@@ -684,6 +693,11 @@
             }
         }
 
+        
+        function goToScan(demandeId) {
+            window.location.href = '/demande/scan?id=' + demandeId;
+        }
+
         function showMessage(type, message) {
             const messageContainer = document.getElementById('messageContainer');
             const messageDiv = document.createElement('div');
@@ -695,6 +709,34 @@
             setTimeout(() => {
                 messageDiv.remove();
             }, 5000);
+        }
+
+        function generatePDF(demandeId) {
+            // Télécharger le PDF depuis l'API
+            fetch(`/api/demandes/${demandeId}/pdf`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();
+                    } else {
+                        throw new Error('Erreur lors de la génération du PDF');
+                    }
+                })
+                .then(blob => {
+                    // Créer un lien de téléchargement
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `recepice_demande_${demandeId}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    showMessage('success', 'PDF téléchargé avec succès!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Erreur lors de la génération du PDF: ' + error.message);
+                });
         }
 
         // Fermer la modal quand on clique en dehors

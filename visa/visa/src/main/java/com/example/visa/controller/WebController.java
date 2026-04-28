@@ -52,4 +52,11 @@ public class WebController {
     public String showListe() {
         return "demande/liste";
     }
+
+    @GetMapping("/demande/scan")
+    public String showScanPage(@org.springframework.web.bind.annotation.RequestParam(name = "id") Integer demandeId,
+            Model model) {
+        model.addAttribute("demandeId", demandeId);
+        return "demande/scan";
+    }
 }
