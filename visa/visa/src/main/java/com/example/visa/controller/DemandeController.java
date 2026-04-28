@@ -3,11 +3,13 @@ package com.example.visa.controller;
 import com.example.visa.dto.DemandeDTO;
 import com.example.visa.entities.Demande;
 import com.example.visa.entities.Demandeur;
+import com.example.visa.entities.HistoriqueStatutDemande;
 import com.example.visa.entities.Nationalite;
 import com.example.visa.entities.Passeport;
 import com.example.visa.entities.PieceJustificative;
 import com.example.visa.entities.SituationFamiliale;
 import com.example.visa.entities.TypeVisa;
+import com.example.visa.repository.HistoriqueStatutDemandeRepository;
 import com.example.visa.service.DemandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import java.util.Map;
 public class DemandeController {
 
     private final DemandeService demandeService;
+    private final HistoriqueStatutDemandeRepository historiqueStatutDemandeRepository;
 
     @GetMapping("/nationalites")
     public ResponseEntity<List<Nationalite>> getAllNationalites() {
@@ -113,6 +116,40 @@ public class DemandeController {
             return ResponseEntity.ok(new Object() {
                 public boolean success = true;
                 public String message = ids.size() + " demande(s) validée(s) avec succès";
+            });
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = e.getMessage();
+            });
+        }
+    }
+
+    @GetMapping("/{id}/historique-statuts")
+    public ResponseEntity<?> getHistoriqueStatuts(@PathVariable Integer id) {
+        try {
+            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findByIdDemandeIdOrderByDateUpdateDesc(id);
+            return ResponseEntity.ok(new Object() {
+                public boolean success = true;
+                public List<HistoriqueStatutDemande> data = historique;
+                public int count = historique.size();
+            });
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = e.getMessage();
+            });
+        }
+    }
+
+    @GetMapping("/historique-global")
+    public ResponseEntity<?> getHistoriqueGlobal() {
+        try {
+            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findAllByOrderByDateUpdateDesc();
+            return ResponseEntity.ok(new Object() {
+                public boolean success = true;
+                public List<HistoriqueStatutDemande> data = historique;
+                public int count = historique.size();
             });
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new Object() {

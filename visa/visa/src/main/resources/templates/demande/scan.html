@@ -254,7 +254,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📄 Scan et Génération PDF</h1>
+        <h1> Scan et Génération PDF</h1>
         <p class="subtitle">Gestion des uploads de documents et génération de récépicé</p>
 
         <div class="demande-id">
@@ -264,7 +264,7 @@
         <div id="messageContainer" class="message"></div>
 
         <div class="info-box">
-            <p><strong>ℹ️ Processus:</strong></p>
+            <p><strong>Processus:</strong></p>
             <p>1. Téléchargez les documents scannés</p>
             <p>2. Vérifiez que tous les fichiers sont présents</p>
             <p>3. Générez le PDF du récépicé</p>
@@ -272,15 +272,15 @@
         </div>
 
         <div class="status-info" id="statusInfo">
-            <p><strong>⚠️ Attention:</strong> Cette demande est en statut "Scan terminé" et ne peut plus être modifiée.</p>
+            <p><strong>Attention:</strong> Cette demande est en statut "Scan terminé" et ne peut plus être modifiée.</p>
         </div>
 
         <!-- Section Upload -->
         <div class="section">
-            <h2>📤 Télécharger des documents</h2>
+            <h2>Télécharger des documents</h2>
             
             <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📁</div>
+                <!-- <div class="upload-icon">📁</div> -->
                 <p><strong>Cliquez pour télécharger</strong> ou glissez-déposez vos fichiers</p>
                 <p style="font-size: 12px; color: #999;">JPG, PNG, PDF - Max 50MB</p>
             </div>
@@ -296,7 +296,7 @@
 
         <!-- Section Liste des fichiers -->
         <div class="section">
-            <h2>📋 Fichiers uploadés</h2>
+            <h2>Fichiers uploadés</h2>
             <div id="scanFilesList">
                 <p style="text-align: center; color: #999;">Aucun fichier uploadé</p>
             </div>
@@ -304,10 +304,10 @@
 
         <!-- Section Actions -->
         <div class="section">
-            <h2>⚙️ Actions</h2>
+            <h2>Actions</h2>
             <div class="actions">
                 <button class="btn btn-success" id="btnGeneratePDF" onclick="generatePDF()">
-                    📄 Générer PDF
+                    Générer PDF
                 </button>
                 <button class="btn btn-warning" id="btnCompleteScan" onclick="completeScan()">
                     ✓ Compléter le Scan

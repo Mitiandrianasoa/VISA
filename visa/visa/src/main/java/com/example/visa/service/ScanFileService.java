@@ -29,6 +29,7 @@ public class ScanFileService {
     private final ScanFileRepository scanFileRepository;
     private final DemandeRepository demandeRepository;
     private final StatutDemandeRepository statutDemandeRepository;
+    private final HistoriqueStatutDemandeRepository historiqueStatutDemandeRepository;
 
     @Value("${upload.path:uploads/scans}")
     private String uploadPath;
@@ -103,8 +104,25 @@ public class ScanFileService {
         StatutDemande scanTermine = statutDemandeRepository.findByCode("SCAN_TERMINE")
                 .orElseThrow(() -> new IllegalArgumentException("Statut SCAN_TERMINE non trouvé"));
 
+        // Créer l'entrée dans l'historique des statuts
+        HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
+        historique.setIdDemande(demande);
+        historique.setIdStatutDemande(scanTermine);
+        
+        // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
+        Administrateur adminParDefaut = new Administrateur();
+        adminParDefaut.setId(1);
+        historique.setIdAdministrateur(adminParDefaut);
+        historique.setDateUpdate(Instant.now());
+        
+        // Sauvegarder l'historique
+        historiqueStatutDemandeRepository.save(historique);
+        
+        // Mettre à jour le statut de la demande
         demande.setIdStatut(scanTermine);
         demandeRepository.save(demande);
+        
+        System.out.println("Historique du statut créé pour la demande " + demandeId + " - Statut: SCAN_TERMINE");
     }
 
     public byte[] generatePDF(Integer demandeId) throws IOException {

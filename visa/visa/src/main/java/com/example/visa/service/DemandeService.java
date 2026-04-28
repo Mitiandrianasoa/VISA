@@ -30,6 +30,7 @@ public class DemandeService {
     private final SituationFamilialeRepository situationFamilialeRepository;
     private final PieceJustificativeRepository pieceJustificativeRepository;
     private final DemandePieceRepository demandePieceRepository;
+    private final HistoriqueStatutDemandeRepository historiqueStatutDemandeRepository;
 
     public List<Nationalite> getAllNationalites() {
         return nationaliteRepository.findAll();
@@ -166,6 +167,7 @@ public class DemandeService {
         // Créer la demande
         Demande demande = new Demande();
         demande.setIdVisaTransformable(visaTransformable);
+        demande.setIdDemandeur(demandeur); // Associer directement le demandeur
         
         // Déterminer le statut selon les règles de duplicata
         Integer statutId;
@@ -192,6 +194,22 @@ public class DemandeService {
         System.out.println("Type Demande ID: " + demandeDTO.getIdTypeDemande());
         demande.setIdTypeDemande(typeDemandeRepository.findById(demandeDTO.getIdTypeDemande()).orElseThrow(() -> new RuntimeException("Type demande non trouvé avec ID: " + demandeDTO.getIdTypeDemande())));
         demande = demandeRepository.save(demande);
+
+        // Créer l'entrée dans l'historique des statuts pour la création
+        HistoriqueStatutDemande historiqueCreation = new HistoriqueStatutDemande();
+        historiqueCreation.setIdDemande(demande);
+        historiqueCreation.setIdStatutDemande(demande.getIdStatut());
+        
+        // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
+        Administrateur adminParDefaut = new Administrateur();
+        adminParDefaut.setId(1);
+        historiqueCreation.setIdAdministrateur(adminParDefaut);
+        historiqueCreation.setDateUpdate(Instant.now());
+        
+        // Sauvegarder l'historique
+        historiqueStatutDemandeRepository.save(historiqueCreation);
+        
+        System.out.println("Historique du statut créé pour la demande " + demande.getId() + " - Statut: " + demande.getIdStatut().getLibelle());
 
         // Associer les pièces justificatives
         if (demandeDTO.getPieceIds() != null) {
@@ -225,8 +243,26 @@ public class DemandeService {
         for (Integer id : ids) {
             Demande demande = demandeRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Demande non trouvée avec l'ID: " + id));
+            
+            // Créer l'entrée dans l'historique des statuts
+            HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
+            historique.setIdDemande(demande);
+            historique.setIdStatutDemande(statutValide);
+            
+            // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
+            Administrateur adminParDefaut = new Administrateur();
+            adminParDefaut.setId(1);
+            historique.setIdAdministrateur(adminParDefaut);
+            historique.setDateUpdate(Instant.now());
+            
+            // Sauvegarder l'historique
+            historiqueStatutDemandeRepository.save(historique);
+            
+            // Mettre à jour le statut de la demande
             demande.setIdStatut(statutValide);
             demandeRepository.save(demande);
+            
+            System.out.println("Historique du statut créé pour la demande " + id + " - Statut: VALIDÉ");
         }
     }
 }
