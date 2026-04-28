@@ -457,10 +457,7 @@
                         <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>
                     </div>
                     
-<<<<<<< Updated upstream
-=======
                     </div>
->>>>>>> Stashed changes
                 </form>
             </div>
         </div>
@@ -675,44 +672,6 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
-<<<<<<< Updated upstream
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(result => {
-                console.log('Result:', result);
-                if (result.success) {
-                    const numeroDemande = result.id;
-                    const numeroPasseport = data.numeroPasseport;
-
-                    const qrUrl = '/api/qrcode/generate-demande'
-                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
-                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
-                        + '&size=300';
-
-                    const qrSection = document.getElementById('qrSection');
-                    const qrImage = document.getElementById('qrImage');
-                    const qrInfo = document.getElementById('qrInfo');
-                    const qrDownloadLink = document.getElementById('qrDownloadLink');
-
-                    // Cacher le formulaire
-                    document.getElementById('demandeForm').style.display = 'none';
-                    
-                    // Afficher la section QR
-                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
-                    qrImage.src = qrUrl;
-                    qrDownloadLink.href = qrUrl;
-                    qrSection.style.display = 'block';
-                } else {
-                    alert('Erreur: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Erreur lors de la soumission: ' + error.message);
-            });
-=======
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -741,7 +700,6 @@
             console.error('Erreur:', error);
             alert('Une erreur technique est survenue. Veuillez vérifier la console.');
         });
->>>>>>> Stashed changes
     });
 </script>
 </body>
