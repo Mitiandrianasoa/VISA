@@ -14,7 +14,7 @@ public interface DemandeListeApiRepository extends JpaRepository<Demande, Intege
         SELECT new com.example.visa.dto.api.DemandeListeItemDTO(
             d.id,
             p.numero,
-            d.dateDemande,
+            hs.dateUpdate,
             dem.nom,
             dem.prenom,
             tv.libelle,
@@ -25,14 +25,16 @@ public interface DemandeListeApiRepository extends JpaRepository<Demande, Intege
         JOIN vt.idPasseport p
         LEFT JOIN p.idDemandeur dem
         LEFT JOIN d.idTypeVisa tv
-        LEFT JOIN d.idStatut st
+        JOIN HistoriqueStatutDemande hs ON hs.idDemande = d
+        JOIN hs.idStatutDemande st
         WHERE LOWER(p.numero) LIKE LOWER(CONCAT('%', :numeroPasseport, '%'))
         ORDER BY
             CASE
                 WHEN :numeroDemande IS NOT NULL AND d.id = :numeroDemande THEN 0
                 ELSE 1
             END,
-            d.dateDemande ASC
+            hs.dateUpdate ASC,
+            hs.id ASC
     """)
     List<DemandeListeItemDTO> rechercherPourApi(
             @Param("numeroPasseport") String numeroPasseport,
@@ -40,33 +42,34 @@ public interface DemandeListeApiRepository extends JpaRepository<Demande, Intege
     );
 
     @Query("""
-    SELECT new com.example.visa.dto.api.DemandeListeItemDTO(
-        d.id,
-        p.numero,
-        d.dateDemande,
-        dem.nom,
-        dem.prenom,
-        tv.libelle,
-        st.libelle
-    )
-    FROM Demande d
-    JOIN d.idVisaTransformable vt
-    JOIN vt.idPasseport p
-    JOIN p.idDemandeur dem
-    LEFT JOIN d.idTypeVisa tv
-    LEFT JOIN d.idStatut st
-    WHERE dem.id = (
-        SELECT demRef.id
-        FROM Demande dRef
-        JOIN dRef.idVisaTransformable vtRef
-        JOIN vtRef.idPasseport pRef
-        JOIN pRef.idDemandeur demRef
-        WHERE dRef.id = :numeroDemande
-    )
-    ORDER BY
-        CASE WHEN d.id = :numeroDemande THEN 0 ELSE 1 END,
-        d.dateDemande ASC
-""")
+        SELECT new com.example.visa.dto.api.DemandeListeItemDTO(
+            d.id,
+            p.numero,
+            hs.dateUpdate,
+            dem.nom,
+            dem.prenom,
+            tv.libelle,
+            st.libelle
+        )
+        FROM Demande d
+        JOIN d.idVisaTransformable vt
+        JOIN vt.idPasseport p
+        LEFT JOIN p.idDemandeur dem
+        LEFT JOIN d.idTypeVisa tv
+        JOIN HistoriqueStatutDemande hs ON hs.idDemande = d
+        JOIN hs.idStatutDemande st
+        WHERE p.numero = (
+            SELECT pRef.numero
+            FROM Demande dRef
+            JOIN dRef.idVisaTransformable vtRef
+            JOIN vtRef.idPasseport pRef
+            WHERE dRef.id = :numeroDemande
+        )
+        ORDER BY
+            CASE WHEN d.id = :numeroDemande THEN 0 ELSE 1 END,
+            hs.dateUpdate ASC,
+            hs.id ASC
+    """)
     List<DemandeListeItemDTO> rechercherParNumeroDemande(@Param("numeroDemande") Integer numeroDemande);
 
 }

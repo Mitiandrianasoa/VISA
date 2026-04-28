@@ -16,11 +16,19 @@ public class DemandeListeApiService {
     private final DemandeListeApiRepository demandeListeApiRepository;
 
     public List<DemandeListeItemDTO> rechercher(String numeroPasseport, Integer numeroDemande) {
-        // Règle demandée: si on n'a pas encore le numéro passeport -> vide
-        if (numeroPasseport == null || numeroPasseport.trim().isEmpty()) {
-            return List.of();
+        String numeroPasseportNettoye = (numeroPasseport == null) ? null : numeroPasseport.trim();
+
+        // Critère 1 : recherche par numéro passeport (+ option prioriser une demande)
+        if (numeroPasseportNettoye != null && !numeroPasseportNettoye.isEmpty()) {
+            return demandeListeApiRepository.rechercherPourApi(numeroPasseportNettoye, numeroDemande);
         }
-        return demandeListeApiRepository.rechercherPourApi(numeroPasseport.trim(), numeroDemande);
+
+        // Critère 2 : si passeport absent mais numéro demande présent
+        if (numeroDemande != null) {
+            return demandeListeApiRepository.rechercherParNumeroDemande(numeroDemande);
+        }
+
+        return List.of();
     }
 
     public List<DemandeListeItemDTO> rechercherParNumeroDemande(Integer numeroDemande) {
