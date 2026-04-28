@@ -37,4 +37,8 @@ public class Demande {
     @JoinColumn(name = "id_type_demande", nullable = false)
     private TypeDemande idTypeDemande;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_demandeur")
+    private Demandeur idDemandeur;
+
 }

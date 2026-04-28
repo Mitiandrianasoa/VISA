@@ -449,6 +449,18 @@
                     <div class="loading">Chargement des demandes...</div>
                 </div>
             </div>
+            
+            <!-- Section Historique des Statuts -->
+            <div class="card" style="margin-top: 30px;">
+                <div class="page-header" style="margin-bottom: 20px;">
+                    <h2 style="font-size: 20px; color: #1e3a5f; margin: 0;">Historique des Changements de Statut</h2>
+                    <p style="color: #64748b; font-size: 14px; margin: 5px 0 0 0;">Tous les changements de statut en temps réel</p>
+                </div>
+                
+                <div id="historiqueContainer">
+                    <div class="loading">Chargement de l'historique...</div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -466,6 +478,10 @@
 
         // Fonction pour obtenir le demandeur d'une demande
         function getDemandeur(demande) {
+            // Essayer plusieurs chemins pour trouver le demandeur
+            if (demande.idDemandeur) {
+                return demande.idDemandeur;
+            }
             if (demande && demande.idVisaTransformable && demande.idVisaTransformable.idPasseport && demande.idVisaTransformable.idPasseport.idDemandeur) {
                 return demande.idVisaTransformable.idPasseport.idDemandeur;
             }
@@ -486,8 +502,12 @@
             `;
             document.body.appendChild(modal);
             
-            // Charger les demandes
+            // Charger les demandes et l'historique
             loadDemandes();
+            loadHistorique();
+            
+            // Rafraîchir l'historique toutes les 5 secondes
+            setInterval(loadHistorique, 5000);
         });
 
         function validateDemande(demande) {
@@ -536,11 +556,12 @@
                         html += '<tbody>';
                         
                         data.forEach(function(demande) {
-                            const nom = demande.idDemandeur ? demande.idDemandeur.nom : 'N/A';
-                            const prenom = demande.idDemandeur ? demande.idDemandeur.prenom : 'N/A';
-                            const typeVisa = demande.idTypeVisa ? demande.idTypeVisa.libelle : 'N/A';
-                            const dateDemande = demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'N/A';
-                            const statut = demande.idStatut ? demande.idStatut.libelle : 'N/A';
+                            const demandeur = getDemandeur(demande);
+                            const nom = demandeur ? demandeur.nom : 'Non renseigné';
+                            const prenom = demandeur ? demandeur.prenom : 'Non renseigné';
+                            const typeVisa = demande.idTypeVisa ? demande.idTypeVisa.libelle : 'Non renseigné';
+                            const dateDemande = demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'Non renseigné';
+                            const statut = demande.idStatut ? demande.idStatut.libelle : 'Non renseigné';
                             const isValidee = demande.idStatut && demande.idStatut.id === 2;
                             
                             html += '<tr>';
@@ -602,22 +623,22 @@
                 }
                 
                 detailsHtml += '<div class="detail-info"><span class="detail-label">ID Demande:</span><span class="detail-value">' + demande.id + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Nom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.nom) ? demandeur.nom : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Prénom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.prenom) ? demandeur.prenom : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Date de naissance:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.dateNaissance) ? new Date(demandeur.dateNaissance).toLocaleDateString('fr-FR') : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Nationalité:</span><span class="detail-value">' + (demandeur && demandeur.idNationalite && isValidValue(demandeur.idNationalite.libelle) ? demandeur.idNationalite.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Situation familiale:</span><span class="detail-value">' + (demandeur && demandeur.idSituationFamiliale && isValidValue(demandeur.idSituationFamiliale.libelle) ? demandeur.idSituationFamiliale.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Adresse Madagascar:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.adresseMada) ? demandeur.adresseMada : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Contact:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.contact) ? demandeur.contact : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Email:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.email) ? demandeur.email : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle) ? demande.idTypeVisa.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
-                detailsHtml += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value">' + (demande.idStatut && isValidValue(demande.idStatut.libelle) ? demande.idStatut.libelle : '<span style="color: #dc3545;"><strong>Donnée manquante</strong></span>') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Nom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.nom) ? demandeur.nom : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Prénom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.prenom) ? demandeur.prenom : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Date de naissance:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.dateNaissance) ? new Date(demandeur.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Nationalité:</span><span class="detail-value">' + (demandeur && demandeur.idNationalite && isValidValue(demandeur.idNationalite.libelle) ? demandeur.idNationalite.libelle : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Situation familiale:</span><span class="detail-value">' + (demandeur && demandeur.idSituationFamiliale && isValidValue(demandeur.idSituationFamiliale.libelle) ? demandeur.idSituationFamiliale.libelle : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Adresse Madagascar:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.adresseMada) ? demandeur.adresseMada : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Contact:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.contact) ? demandeur.contact : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Email:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.email) ? demandeur.email : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle) ? demande.idTypeVisa.libelle : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'Non renseigné') + '</span></div>';
+                detailsHtml += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value">' + (demande.idStatut && isValidValue(demande.idStatut.libelle) ? demande.idStatut.libelle : 'Non renseigné') + '</span></div>';
                 
                 // Ajouter le bouton "Aller au Scan" s'il y a au moins les données de base
                 if (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle)) {
                     detailsHtml += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">';
-                    detailsHtml += '<button class="btn btn-primary" onclick="goToScan(' + demande.id + ')" style="padding: 10px 20px; font-size: 14px; background-color: #10b981; width: 100%;">📤 Aller au Scan</button>';
+                    detailsHtml += '<button class="btn btn-primary" onclick="goToScan(' + demande.id + ')" style="padding: 10px 20px; font-size: 14px; background-color: #10b981; width: 100%;">Aller au Scan</button>';
                     detailsHtml += '</div>';
                 }
                 
@@ -736,6 +757,72 @@
                 .catch(error => {
                     console.error('Error:', error);
                     showMessage('error', 'Erreur lors de la génération du PDF: ' + error.message);
+                });
+        }
+
+        // Fonction pour charger l'historique global
+        function loadHistorique() {
+            const container = document.getElementById('historiqueContainer');
+            
+            fetch('http://localhost:8000/api/demandes/historique-global')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Historique reçu:', data);
+                    if (data.success && data.data && data.data.length > 0) {
+                        let html = '<table>';
+                        html += '<thead>';
+                        html += '<tr>';
+                        html += '<th>Date</th>';
+                        html += '<th>ID Demande</th>';
+                        html += '<th>Statut</th>';
+                        html += '<th>Administrateur</th>';
+                        html += '</tr>';
+                        html += '</thead>';
+                        html += '<tbody>';
+                        
+                        data.data.forEach(function(historique) {
+                            const date = new Date(historique.dateUpdate).toLocaleString('fr-FR');
+                            const demande = historique.idDemande;
+                            const demandeId = demande ? demande.id : 'N/A';
+                            const statut = historique.idStatutDemande ? historique.idStatutDemande.libelle : 'N/A';
+                            const admin = historique.idAdministrateur ? historique.idAdministrateur.nom + ' ' + historique.idAdministrateur.prenom : 'Admin';
+                            
+                            // Récupérer le demandeur depuis plusieurs sources possibles
+                            let demandeurNom = 'Non renseigné';
+                            let demandeurPrenom = '';
+                            
+                            if (demande) {
+                                // Essayer d'abord la relation directe
+                                if (demande.idDemandeur) {
+                                    demandeurNom = demande.idDemandeur.nom || 'Non renseigné';
+                                    demandeurPrenom = demande.idDemandeur.prenom || '';
+                                }
+                                // Sinon essayer via VisaTransformable
+                                else if (demande.idVisaTransformable && demande.idVisaTransformable.idPasseport && demande.idVisaTransformable.idPasseport.idDemandeur) {
+                                    const demandeur = demande.idVisaTransformable.idPasseport.idDemandeur;
+                                    demandeurNom = demandeur.nom || 'Non renseigné';
+                                    demandeurPrenom = demandeur.prenom || '';
+                                }
+                            }
+                            
+                            html += '<tr>';
+                            html += '<td>' + date + '</td>';
+                            html += '<td><strong>' + demandeId + '</strong><br><small style="color: #666;">' + demandeurPrenom + ' ' + demandeurNom + '</small></td>';
+                            html += '<td><span style="background-color: #e3f2fd; padding: 4px 8px; border-radius: 3px;">' + statut + '</span></td>';
+                            html += '<td>' + admin + '</td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody>';
+                        html += '</table>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<p style="text-align: center; font-size: 16px; color: #666;">Aucun historique trouvé.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="error">Erreur lors du chargement de l\'historique: ' + error.message + '</div>';
                 });
         }
 
