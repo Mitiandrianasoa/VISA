@@ -102,6 +102,19 @@
             <artifactId>html2pdf</artifactId>
             <version>3.0.5</version>
         </dependency>
+		 <!-- ZXing Core - Pour les classes MultiFormatWriter, BarcodeFormat, BitMatrix -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+
+		<!-- ZXing JavaSE - Pour MatrixToImageWriter -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.5.3</version>
+		</dependency>
     </dependencies>
 
 	<build>
