@@ -25,9 +25,8 @@ public class QRCodeController {
         try {
             // Construire l'URL de l'application Vue avec les paramètres
             String vueAppUrl = String.format(
-                    "http://localhost:5173/?numeroDemande=%s&numeroPasseport=%s",
-                    numeroDemande,
-                    numeroPasseport
+                    "http://localhost:5173/?numeroDemande=%s",
+                    numeroDemande
             );
 
             byte[] qrCodeImage = qrCodeService.generateQRCode(vueAppUrl, size, size);
