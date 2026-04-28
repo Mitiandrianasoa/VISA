@@ -308,6 +308,46 @@
             
             <div class="card">
                 <form id="demandeForm" method="post" action="/demande/soumettre">
+<div class="container">
+    <h1>Demande de Nouveau Titre</h1>
+
+    <form id="demandeForm" method="post" action="/demande/soumettre">
+
+        <h2>Type de Demande</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="idTypeVisa">Type de visa demandé *</label>
+                <select id="idTypeVisa" name="idTypeVisa" required onchange="loadPieces()">
+                    <option value="">Sélectionner...</option>
+                    <!-- Utiliser UNIQUEMENT Thymeleaf, pas JavaScript -->
+                    <option th:each="tv : ${typesVisa}" th:value="${tv.id}" th:text="${tv.libelle}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="idTypeDemande">Type de demande *</label>
+                <select id="idTypeDemande" name="idTypeDemande" required onchange="checkTypeDemande()">
+                    <option value="">Sélectionner...</option>
+                    <option th:each="td : ${typesDemande}" th:value="${td.id}" th:text="${td.libelle}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div id="searchSection" style="display: none; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h2 style="margin-top: 0; border-bottom: none;">Recherche du demandeur</h2>
+            <p style="color: #64748b; margin-bottom: 15px;">Entrez le nom et prénom pour rechercher si la personne est déjà dans le système</p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="searchNom">Nom</label>
+                    <input type="text" id="searchNom" placeholder="Nom du demandeur">
+                </div>
+                <div class="form-group">
+                    <label for="searchPrenom">Prénom</label>
+                    <input type="text" id="searchPrenom" placeholder="Prénom du demandeur">
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="rechercherDemandeur()">Rechercher</button>
+            <div id="searchResults" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
 
                     <h2>État Civil</h2>
                     <div class="form-row">
@@ -373,59 +413,38 @@
                         </div>
                     </div>
 
-                    <div class="visa-transformable-section">
-                        <h2>Visa Transformable (optionnel)</h2>
-                        <p style="color: #92400e; margin-bottom: 15px;">Cochez cette case si vous transformez un visa existant</p>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" id="hasVisaTransformable" onchange="toggleVisaTransformable()" style="width: auto; margin-right: 10px;">
-                                Je transforme un visa existant
-                            </label>
-                        </div>
-                        <div id="visaTransformableFields" style="display: none;">
-                            <div class="form-group">
-                                <label for="visaNumero">Numéro du visa existant à transformer *</label>
-                                <input type="text" id="visaNumero" name="visa.numero">
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="visaDateEntree">Date d'entrée sur le territoire *</label>
-                                    <input type="date" id="visaDateEntree" name="visa.dateEntreeTerritoire">
-                                </div>
-                                <div class="form-group">
-                                    <label for="visaLieuEntree">Lieu d'entrée sur le territoire *</label>
-                                    <input type="text" id="visaLieuEntree" name="visa.lieuEntreeTerritoire">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="visaNumeroTransformable">Numéro du nouveau visa transformé *</label>
-                                    <input type="text" id="visaNumeroTransformable" name="visa.numeroVisaTransformable">
-                                </div>
-                                <div class="form-group">
-                                    <label for="visaDateSortie">Date de sortie du territoire</label>
-                                    <input type="date" id="visaDateSortie" name="visa.dateSortieTerritoire">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2>Type de Demande</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="idTypeVisa">Type de visa demandé *</label>
-                            <select id="idTypeVisa" name="idTypeVisa" required onchange="loadPieces()">
-                                <option value="">Sélectionner...</option>
-                                <option th:each="tv : ${typesVisa}" th:value="${tv.id}" th:text="${tv.libelle}"></option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="idTypeDemande">Type de demande *</label>
-                            <select id="idTypeDemande" name="idTypeDemande" required>
-                                <option value="1">Nouvelle demande</option>
-                            </select>
-                        </div>
-                    </div>
+        <div class="visa-transformable-section" style="background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h2 style="margin-top: 0; border-bottom: none;">Visa Transformable (optionnel)</h2>
+            <p style="color: #64748b;">Cochez cette case si vous transformez un visa existant</p>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="hasVisaTransformable" onchange="toggleVisaTransformable()">
+                    Je transforme un visa existant
+                </label>
+            </div>
+            <div id="visaTransformableFields" style="display: none;">
+                <div class="form-group">
+                    <label for="visaNumero">Numéro du visa existant à transformer *</label>
+                    <input type="text" id="visaNumero" name="visa.numero">
+                </div>
+                <div class="form-group">
+                    <label for="visaDateEntree">Date d'entrée sur le territoire *</label>
+                    <input type="date" id="visaDateEntree" name="visa.dateEntreeTerritoire">
+                </div>
+                <div class="form-group">
+                    <label for="visaLieuEntree">Lieu d'entrée sur le territoire *</label>
+                    <input type="text" id="visaLieuEntree" name="visa.lieuEntreeTerritoire">
+                </div>
+                <div class="form-group">
+                    <label for="visaNumeroTransformable">Numéro du nouveau visa transformé *</label>
+                    <input type="text" id="visaNumeroTransformable" name="visa.numeroVisaTransformable">
+                </div>
+                <div class="form-group">
+                    <label for="visaDateSortie">Date de sortie du territoire</label>
+                    <input type="date" id="visaDateSortie" name="visa.dateSortieTerritoire">
+                </div>
+            </div>
+        </div>
 
                     <h2>Pièces Justificatives</h2>
                     <p style="color: #64748b; margin-bottom: 10px;">Sélectionnez les pièces que vous fournissez :</p>
@@ -433,17 +452,133 @@
                         <p style="color: #64748b;">Veuillez d'abord sélectionner un type de visa pour voir les pièces requises.</p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="margin-top: 25px;">Soumettre la demande</button>
+                    <div style="margin-top: 25px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Soumettre la demande</button>
+                        <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>
+                    </div>
                 </form>
             </div>
         </div>
     </main>
 
 <script>
+    let selectedDemandeur = null;
+
     function toggleVisaTransformable() {
         const checkbox = document.getElementById('hasVisaTransformable');
         const fields = document.getElementById('visaTransformableFields');
         fields.style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    function checkTypeDemande() {
+        const typeDemande = document.getElementById('idTypeDemande').value;
+        const searchSection = document.getElementById('searchSection');
+        const visaTransformableSection = document.querySelector('.visa-transformable-section');
+        
+        // Si type de demande = Duplicata (id=2), afficher la section de recherche
+        if (typeDemande === '2') {
+            searchSection.style.display = 'block';
+            // Si aucun demandeur sélectionné, afficher visa transformable (nouveau demandeur)
+            if (!selectedDemandeur && visaTransformableSection) {
+                visaTransformableSection.style.display = 'block';
+            }
+        } else {
+            searchSection.style.display = 'none';
+            selectedDemandeur = null;
+            if (visaTransformableSection) {
+                visaTransformableSection.style.display = 'block';
+            }
+        }
+    }
+
+    function rechercherDemandeur() {
+        const nom = document.getElementById('searchNom').value;
+        const prenom = document.getElementById('searchPrenom').value;
+        const resultsContainer = document.getElementById('searchResults');
+        
+        if (!nom || !prenom) {
+            resultsContainer.innerHTML = '<p style="color: #ef4444;">Veuillez entrer le nom et le prénom.</p>';
+            return;
+        }
+        
+        fetch('http://localhost:8000/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    let html = '<p style="color: #065f46; margin-bottom: 10px;">' + data.length + ' demandeur(s) trouvé(s)</p>';
+                    data.forEach(demandeur => {
+                        html += '<div style="padding: 10px; background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 5px; cursor: pointer;" onclick="selectionnerDemandeur(' + demandeur.id + ', \'' + demandeur.nom + '\', \'' + demandeur.prenom + '\')">';
+                        html += '<strong>' + demandeur.nom + ' ' + demandeur.prenom + '</strong><br>';
+                        html += '<small>Nationalité: ' + (demandeur.idNationalite ? demandeur.idNationalite.libelle : 'N/A') + '</small>';
+                        html += '</div>';
+                    });
+                    resultsContainer.innerHTML = html;
+                } else {
+                    resultsContainer.innerHTML = '<p style="color: #64748b;">Aucun demandeur trouvé. Veuillez remplir le formulaire complet.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultsContainer.innerHTML = '<p style="color: #ef4444;">Erreur lors de la recherche.</p>';
+            });
+    }
+
+    function selectionnerDemandeur(id, nom, prenom) {
+        selectedDemandeur = id;
+        document.getElementById('searchResults').innerHTML = '<p style="color: #065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
+        
+        // Cacher la section visa transformable car on utilise le passeport existant
+        const visaTransformableSection = document.querySelector('.visa-transformable-section');
+        if (visaTransformableSection) {
+            visaTransformableSection.style.display = 'none';
+        }
+        // Vider les champs du visa transformable
+        document.getElementById('hasVisaTransformable').checked = false;
+        document.getElementById('visaTransformableFields').style.display = 'none';
+        document.getElementById('visaNumero').value = '';
+        document.getElementById('visaDateEntree').value = '';
+        document.getElementById('visaLieuEntree').value = '';
+        document.getElementById('visaNumeroTransformable').value = '';
+        document.getElementById('visaDateSortie').value = '';
+        
+        // Charger les données du demandeur et pré-remplir le formulaire
+        fetch('http://localhost:8000/api/demandes/demandeurs/' + id)
+            .then(response => response.json())
+            .then(demandeur => {
+                if (demandeur) {
+                    // Pré-remplir les informations du demandeur
+                    document.getElementById('nom').value = demandeur.nom || '';
+                    document.getElementById('prenom').value = demandeur.prenom || '';
+                    document.getElementById('dateNaissance').value = demandeur.dateNaissance || '';
+                    document.getElementById('idNationalite').value = demandeur.idNationalite ? demandeur.idNationalite.id : '';
+                    document.getElementById('idSituationFamiliale').value = demandeur.idSituationFamiliale ? demandeur.idSituationFamiliale.id : '';
+                    document.getElementById('adresseMada').value = demandeur.adresseMada || '';
+                    document.getElementById('contact').value = demandeur.contact || '';
+                    document.getElementById('email').value = demandeur.email || '';
+                    
+                    // Charger les passeports du demandeur
+                    fetch('http://localhost:8000/api/demandes/demandeurs/' + id + '/passeports')
+                        .then(response => response.json())
+                        .then(passeports => {
+                            if (passeports && passeports.length > 0) {
+                                const dernierPasseport = passeports[passeports.length - 1];
+                                document.getElementById('numeroPasseport').value = dernierPasseport.numero || '';
+                                document.getElementById('dateDelivrancePasseport').value = dernierPasseport.dateDelivrance || '';
+                                document.getElementById('dateExpirationPasseport').value = dernierPasseport.dateExpiration || '';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading passeports:', error);
+                        });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function genererQRCode() {
+        alert('Fonctionnalité de génération de QR Code à implémenter');
     }
 
     function loadPieces() {
@@ -504,6 +639,20 @@
                 data[key] = value;
             }
         });
+
+        // Convertir les IDs en entiers
+        if (data.idNationalite) data.idNationalite = parseInt(data.idNationalite);
+        if (data.idSituationFamiliale) data.idSituationFamiliale = parseInt(data.idSituationFamiliale);
+        if (data.idTypeVisa) data.idTypeVisa = parseInt(data.idTypeVisa);
+        if (data.idTypeDemande) data.idTypeDemande = parseInt(data.idTypeDemande);
+        if (data.idDemandeur) data.idDemandeur = parseInt(data.idDemandeur);
+
+        // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
+        if (selectedDemandeur) {
+            data.idDemandeur = selectedDemandeur;
+            // Pour un duplicata avec demandeur existant, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
+            delete data.visaTransformable;
+        }
 
         console.log('Données envoyées:', data);
         fetch('http://localhost:8000/api/demandes', {

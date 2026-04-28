@@ -21,11 +21,13 @@ INSERT INTO type_visa (id, code, libelle) VALUES
 (2, 'TRAV', 'Visa travailleur');
 
 INSERT INTO type_demande (id, code, libelle) VALUES
-(1, 'NOUV', 'Nouvelle demande');
+(1, 'NOUV', 'Nouvelle demande'),
+(2, 'DUP', 'Duplicata');
 
 INSERT INTO statut_demande (id, code, libelle) VALUES
 (1, 'EN_ATTENTE', 'En attente'),
-(2, 'VALIDE', 'Validée');
+(2, 'VALIDE', 'Validée'),
+(3, 'APPROUVEE', 'Approuvée');
 
 INSERT INTO nationalite (id, libelle) VALUES
 (1, 'Française'),
