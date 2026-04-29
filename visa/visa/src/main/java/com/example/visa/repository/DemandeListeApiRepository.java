@@ -8,37 +8,33 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface DemandeListeApiRepository extends JpaRepository<Demande, Integer> {
+public interface DemandeListeApiRepository extends JpaRepository<Demande, Long> {
 
     @Query("""
         SELECT new com.example.visa.dto.api.DemandeListeItemDTO(
             d.id,
-            p.numero,
-            hs.dateUpdate,
-            dem.nom,
-            dem.prenom,
-            tv.libelle,
-            st.libelle
+            CAST(d.id as string),
+            d.dateDemande,
+            sd.libelle,
+            p.numero
         )
         FROM Demande d
-        JOIN d.idVisaTransformable vt
-        JOIN vt.idPasseport p
-        LEFT JOIN p.idDemandeur dem
-        LEFT JOIN d.idTypeVisa tv
-        JOIN HistoriqueStatutDemande hs ON hs.idDemande = d
-        JOIN hs.idStatutDemande st
-        WHERE LOWER(p.numero) LIKE LOWER(CONCAT('%', :numeroPasseport, '%'))
+        LEFT JOIN d.idVisaTransformable vt
+        LEFT JOIN d.idDemandeur dr
+        LEFT JOIN dr.passeports p
+        JOIN d.idStatut sd
+        WHERE (
+            :numeroPasseport IS NULL OR p.numero = :numeroPasseport
+        ) OR (
+            :numeroDemande IS NULL OR CAST(d.id as string) = :numeroDemande
+        )
         ORDER BY
-            CASE
-                WHEN :numeroDemande IS NOT NULL AND d.id = :numeroDemande THEN 0
-                ELSE 1
-            END,
-            hs.dateUpdate ASC,
-            hs.id ASC
+            CASE WHEN CAST(d.id as string) = :numeroDemande THEN 0 ELSE 1 END,
+            d.dateDemande DESC
     """)
     List<DemandeListeItemDTO> rechercherPourApi(
-            @Param("numeroPasseport") String numeroPasseport,
-            @Param("numeroDemande") Integer numeroDemande
+            @Param("numeroDemande") String numeroDemande,
+            @Param("numeroPasseport") String numeroPasseport
     );
 
     @Query("""
@@ -51,18 +47,15 @@ public interface DemandeListeApiRepository extends JpaRepository<Demande, Intege
             tv.libelle,
             st.libelle
         )
-        FROM Demande d
-        JOIN d.idVisaTransformable vt
-        JOIN vt.idPasseport p
-        LEFT JOIN p.idDemandeur dem
+        FROM HistoriqueStatutDemande hs
+        JOIN hs.idDemande d
+        JOIN d.idDemandeur dem
+        LEFT JOIN dem.passeports p
         LEFT JOIN d.idTypeVisa tv
-        JOIN HistoriqueStatutDemande hs ON hs.idDemande = d
         JOIN hs.idStatutDemande st
-        WHERE p.numero = (
-            SELECT pRef.numero
+        WHERE dem.id = (
+            SELECT dRef.idDemandeur.id
             FROM Demande dRef
-            JOIN dRef.idVisaTransformable vtRef
-            JOIN vtRef.idPasseport pRef
             WHERE dRef.id = :numeroDemande
         )
         ORDER BY

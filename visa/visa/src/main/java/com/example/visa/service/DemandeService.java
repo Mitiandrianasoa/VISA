@@ -203,8 +203,9 @@ public class DemandeService {
         
         // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
         Administrateur adminParDefaut = new Administrateur();
-        adminParDefaut.setId(1);
+        adminParDefaut.setId(1); // Assurez-vous qu'un administrateur avec l'ID 1 existe
         historiqueCreation.setIdAdministrateur(adminParDefaut);
+        
         historiqueCreation.setDateUpdate(Instant.now());
         
         // Sauvegarder l'historique

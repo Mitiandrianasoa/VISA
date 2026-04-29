@@ -454,14 +454,12 @@
 
                     <div style="margin-top: 25px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary">Soumettre la demande</button>
-                        <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>
-                    </div>
-                    
+<!--                        <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>-->
                     </div>
                 </form>
             </div>
         </div>
-        <div id="qrSection" style="display:none; margin-top:20px;">
+         <div id="qrSection" style="display:none; margin-top:20px;">
                         <h2>QR Code de la demande</h2>
                         <p id="qrInfo" style="color:#64748b;"></p>
                         <img id="qrImage" alt="QR Code demande" style="max-width:300px; border:1px solid #e2e8f0; border-radius:8px;" />
@@ -470,6 +468,7 @@
                             <a href="/demande/liste" class="btn btn-primary" style="margin-left:8px;">Aller à la liste</a>
                         </div>
                     </div>
+        </div>
     </main>
 
 <script>
@@ -485,17 +484,19 @@
         const typeDemande = document.getElementById('idTypeDemande').value;
         const searchSection = document.getElementById('searchSection');
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
-        
+
         // Si type de demande = Duplicata (id=2), afficher la section de recherche
         if (typeDemande === '2') {
             searchSection.style.display = 'block';
-            // Si aucun demandeur sélectionné, afficher visa transformable (nouveau demandeur)
-            if (!selectedDemandeur && visaTransformableSection) {
-                visaTransformableSection.style.display = 'block';
+            // On cache la section transformable pour l'instant, elle sera affichée
+            // uniquement après la sélection d'un demandeur.
+            if (visaTransformableSection) {
+                visaTransformableSection.style.display = 'none';
             }
         } else {
+            // Pour tous les autres types, on cache la recherche et on affiche la section transformable
             searchSection.style.display = 'none';
-            selectedDemandeur = null;
+            selectedDemandeur = null; // Réinitialiser le demandeur sélectionné
             if (visaTransformableSection) {
                 visaTransformableSection.style.display = 'block';
             }
@@ -512,7 +513,7 @@
             return;
         }
         
-        fetch('/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
+        fetch('http://localhost:8000/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
@@ -538,19 +539,19 @@
         selectedDemandeur = id;
         document.getElementById('searchResults').innerHTML = '<p style="color: #065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
         
-        // Cacher la section visa transformable car on utilise le passeport existant
+        const typeDemande = document.getElementById('idTypeDemande').value;
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
-        if (visaTransformableSection) {
+
+        // Si c'est un duplicata, on affiche la section et on cherche les demandes existantes
+        if (typeDemande === '2' && visaTransformableSection) {
+            visaTransformableSection.style.display = 'block';
+            document.getElementById('hasVisaTransformable').checked = true;
+            toggleVisaTransformable(); // Pour afficher les champs
+            rechercherDemandesDuplicata(id);
+        } else if (visaTransformableSection) {
+            // Pour les autres types de demande, on cache la section
             visaTransformableSection.style.display = 'none';
         }
-        // Vider les champs du visa transformable
-        document.getElementById('hasVisaTransformable').checked = false;
-        document.getElementById('visaTransformableFields').style.display = 'none';
-        document.getElementById('visaNumero').value = '';
-        document.getElementById('visaDateEntree').value = '';
-        document.getElementById('visaLieuEntree').value = '';
-        document.getElementById('visaNumeroTransformable').value = '';
-        document.getElementById('visaDateSortie').value = '';
         
         // Charger les données du demandeur et pré-remplir le formulaire
         fetch('http://localhost:8000/api/demandes/demandeurs/' + id)
@@ -585,6 +586,64 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+            });
+    }
+
+    function rechercherDemandesDuplicata(demandeurId) {
+        const container = document.getElementById('visaTransformableFields');
+        
+        fetch(`http://localhost:8000/api/demandes-liste?idDemandeur=${demandeurId}`)
+            .then(response => response.json())
+            .then(demandes => {
+                let html = '<div class="form-group"><label for="demandeADupliquer">Sélectionnez la demande à dupliquer :</label>';
+                if (demandes && demandes.length > 0) {
+                    html += '<select id="demandeADupliquer" name="visa.idDemandePrecedente" class="form-control" onchange="preRemplirVisaTransformable(this.value, ' + JSON.stringify(demandes).replace(/"/g, '&quot;') + ')">';
+                    html += '<option value="">Sélectionner une demande...</option>';
+                    demandes.forEach(demande => {
+                        html += `<option value="${demande.id}">Demande N°${demande.numero} du ${demande.dateDemande}</option>`;
+                    });
+                    html += '</select>';
+                } else {
+                    html = '<p style="color: #64748b;">Aucune demande antérieure trouvée pour ce demandeur.</p>';
+                }
+                html += '</div>';
+                // On injecte le select au début des champs de visa transformable
+                container.innerHTML = html + container.innerHTML;
+            })
+            .catch(error => {
+                console.error('Erreur lors de la recherche des demandes pour duplicata:', error);
+            });
+    }
+
+    function preRemplirVisaTransformable(demandeId) {
+        if (!demandeId) {
+            // Vider les champs si l'utilisateur déselectionne
+            document.getElementById('visaNumero').value = '';
+            document.getElementById('visaDateEntree').value = '';
+            document.getElementById('visaLieuEntree').value = '';
+            document.getElementById('visaNumeroTransformable').value = '';
+            document.getElementById('visaDateSortie').value = '';
+            return;
+        }
+
+        // Faire un appel API pour obtenir les détails complets de la demande sélectionnée
+        fetch(`http://localhost:8000/api/demandes/${demandeId}`)
+            .then(response => response.json())
+            .then(demandeDetails => {
+                if (demandeDetails && demandeDetails.visaTransformable) {
+                    const visa = demandeDetails.visaTransformable;
+                    document.getElementById('visaNumero').value = visa.numero || '';
+                    document.getElementById('visaDateEntree').value = visa.dateEntreeTerritoire || '';
+                    document.getElementById('visaLieuEntree').value = visa.lieuEntreeTerritoire || '';
+                    document.getElementById('visaNumeroTransformable').value = visa.numeroVisaTransformable || '';
+                    document.getElementById('visaDateSortie').value = visa.dateSortieTerritoire || '';
+                } else if (demandeDetails) {
+                    // Si la demande n'a pas de visa transformable, on peut au moins utiliser son propre numéro
+                    document.getElementById('visaNumero').value = demandeDetails.numero || '';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la récupération des détails de la demande:', error);
             });
     }
 
@@ -631,75 +690,88 @@
     document.getElementById('demandeForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const form = e.target;
-        const pieces = Array.from(form.querySelectorAll('input[name="pieces"]:checked')).map(cb => ({ id: parseInt(cb.value) }));
+        const formData = new FormData(this);
+        const data = {};
 
-        const formData = {
-            idTypeVisa: parseInt(form.idTypeVisa.value),
-            idTypeDemande: parseInt(form.idTypeDemande.value),
-            demandeur: {
-                id: selectedDemandeur ? selectedDemandeur.id : null,
-                nom: form.nom.value,
-                prenom: form.prenom.value,
-                dateNaissance: form.dateNaissance.value,
-                idNationalite: parseInt(form.idNationalite.value),
-                idSituationFamiliale: parseInt(form.idSituationFamiliale.value),
-                adresseMada: form.adresseMada.value,
-                contact: form.contact.value,
-                email: form.email.value,
-                passeport: {
-                    numero: form.numeroPasseport.value,
-                    dateDelivrance: form.dateDelivrancePasseport.value,
-                    dateExpiration: form.dateExpirationPasseport.value
+        formData.forEach((value, key) => {
+            if (key.startsWith('visa.')) {
+                if (!data.visaTransformable) {
+                    data.visaTransformable = {};
                 }
-            },
-            pieces: pieces,
-            visaTransformable: null
-        };
+                const visaKey = key.substring(5);
+                data.visaTransformable[visaKey] = value;
+            } else if (key === 'pieceIds') {
+                if (!data.pieceIds) {
+                    data.pieceIds = [];
+                }
+                data.pieceIds.push(parseInt(value));
+            } else {
+                data[key] = value;
+            }
+        });
 
-        if (document.getElementById('hasVisaTransformable').checked) {
-            formData.visaTransformable = {
-                numero: form['visa.numero'].value,
-                dateEntreeTerritoire: form['visa.dateEntreeTerritoire'].value,
-                lieuEntreeTerritoire: form['visa.lieuEntreeTerritoire'].value,
-                numeroVisaTransformable: form['visa.numeroVisaTransformable'].value,
-                dateSortieTerritoire: form['visa.dateSortieTerritoire'].value || null
-            };
+        // Convertir les IDs en entiers
+        if (data.idNationalite) data.idNationalite = parseInt(data.idNationalite);
+        if (data.idSituationFamiliale) data.idSituationFamiliale = parseInt(data.idSituationFamiliale);
+        if (data.idTypeVisa) data.idTypeVisa = parseInt(data.idTypeVisa);
+        if (data.idTypeDemande) data.idTypeDemande = parseInt(data.idTypeDemande);
+        if (data.idDemandeur) data.idDemandeur = parseInt(data.idDemandeur);
+
+        // Gérer le cas du duplicata sans effacer les données nécessaires
+        if (selectedDemandeur) {
+            data.idDemandeur = selectedDemandeur;
+            // Pour un duplicata, on s'assure que les données du visa transformable sont bien là
+            // si la checkbox est cochée. Le `delete` est trop agressif.
+            if (!document.getElementById('hasVisaTransformable').checked) {
+                 delete data.visaTransformable;
+            }
         }
 
-        fetch('/api/demandes', {
+        console.log('Données envoyées:', data);
+        fetch('http://localhost:8000/api/demandes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const demandeId = data.id;
-                const qrSection = document.getElementById('qrSection');
-                const qrImage = document.getElementById('qrImage');
-                const qrInfo = document.getElementById('qrInfo');
-                const qrDownloadLink = document.getElementById('qrDownloadLink');
-                const pageHeader = document.querySelector('.page-header');
-                
-                form.style.display = 'none';
-                if(pageHeader) pageHeader.style.display = 'none';
+        
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Result:', result);
+                if (result.success) {
+                    const numeroDemande = result.id;
+                    const numeroPasseport = data.numeroPasseport;
 
-                qrSection.style.display = 'block';
-                qrInfo.textContent = `Demande N°${demandeId} enregistrée. Veuillez scanner le QR code pour passer à l'étape suivante (scan des pièces).`;
-                
-                const qrCodeUrl = `/qrcode/demande/${demandeId}`;
-                qrImage.src = qrCodeUrl;
-                qrDownloadLink.href = qrCodeUrl;
+                    const qrUrl = '/api/qrcode/generate-demande'
+                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
+                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
+                        + '&size=300';
 
-            } else {
-                alert('Erreur lors de la soumission : ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Une erreur technique est survenue. Veuillez vérifier la console.');
-        });
+                    const qrSection = document.getElementById('qrSection');
+                    const qrImage = document.getElementById('qrImage');
+                    const qrInfo = document.getElementById('qrInfo');
+                    const qrDownloadLink = document.getElementById('qrDownloadLink');
+
+                    // Cacher le formulaire
+                    document.getElementById('demandeForm').style.display = 'none';
+                    
+                    // Afficher la section QR
+                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
+                    qrImage.src = qrUrl;
+                    qrDownloadLink.href = qrUrl;
+                    qrSection.style.display = 'block';
+                } else {
+                    alert('Erreur: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors de la soumission: ' + error.message);
+            });
     });
 </script>
 </body>
