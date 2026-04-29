@@ -59,4 +59,11 @@ public class WebController {
         model.addAttribute("demandeId", demandeId);
         return "demande/scan";
     }
+
+    @GetMapping("/demande/details")
+    public String showDetailsPage(@org.springframework.web.bind.annotation.RequestParam(name = "id") Integer demandeId,
+            Model model) {
+        model.addAttribute("demandeId", demandeId);
+        return "demande/details";
+    }
 }

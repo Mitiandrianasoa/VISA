@@ -3,6 +3,7 @@ package com.example.visa.service;
 import com.example.visa.dto.DemandeDTO;
 import com.example.visa.dto.VisaTransformableDTO;
 import com.example.visa.entities.*;
+import com.example.visa.repository.HistoriqueStatutDemandeRepository;
 import com.example.visa.repository.*;
 import com.example.visa.service.exception.PiecesIncompletesException;
 import lombok.RequiredArgsConstructor;
@@ -264,5 +265,13 @@ public class DemandeService {
             
             System.out.println("Historique du statut créé pour la demande " + id + " - Statut: VALIDÉ");
         }
+    }
+
+    public List<HistoriqueStatutDemande> getHistoriqueByDemandeId(Integer demandeId) {
+        return historiqueStatutDemandeRepository.findByDemandeIdOrderByDateUpdateDesc(demandeId);
+    }
+
+    public List<HistoriqueStatutDemande> getAllHistorique() {
+        return historiqueStatutDemandeRepository.findAllOrderByDateUpdateDesc();
     }
 }

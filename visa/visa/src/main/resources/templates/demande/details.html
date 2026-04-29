@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de la Demande - Visa Madagascar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #2c5282 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 3px solid #4a90d9;
+        }
+        
+        .sidebar-nav a svg {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+        }
+        
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .page-header {
+            margin-bottom: 20px;
+        }
+        
+        .page-header h1 {
+            font-size: 28px;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+        
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            font-size: 20px;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a90d9;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background-color: #4a90d9;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-info {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #0284c7;
+        }
+        
+        .btn-danger {
+            background-color: #d32f2f;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c62828;
+        }
+        
+        .btn-secondary {
+            background-color: #64748b;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        
+        .btn:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .detail-info {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            min-width: 150px;
+            color: #334155;
+        }
+        
+        .detail-value {
+            flex-grow: 1;
+            color: #64748b;
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .message-container {
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 16px;
+            color: #64748b;
+        }
+        
+        .error {
+            color: #991b1b;
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            color: #065f46;
+            background-color: #d1fae5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .historique-item {
+            padding: 15px;
+            border-left: 4px solid #4a90d9;
+            background-color: #f8fafc;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .historique-date {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        
+        .historique-statut {
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 5px;
+        }
+        
+        .historique-admin {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-en-attente {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-validee {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 10px 0;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .sidebar-nav a span {
+                display: none;
+            }
+            
+            .sidebar-nav a {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .sidebar-nav a svg {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 60px;
+                padding: 15px;
+            }
+            
+            .content-wrapper {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Visa Madagascar</h2>
+            <p>Système de gestion</p>
+        </div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/demande/nouveau">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nouvelle Demande</span>
+                </a>
+            </li>
+            <li>
+                <a href="/demande/liste">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Liste des Demandes</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>Détails de la Demande</h1>
+                <p>Informations complètes et historique des changements</p>
+            </div>
+            
+            <div id="messageContainer" class="message-container"></div>
+            
+            <!-- Section Détails -->
+            <div class="card">
+                <h2>Informations de la Demande</h2>
+                <div id="detailsContainer">
+                    <div class="loading">Chargement des détails...</div>
+                </div>
+            </div>
+            
+            <!-- Section Historique -->
+            <div class="card">
+                <h2>Historique des Changements</h2>
+                <div id="historiqueContainer">
+                    <div class="loading">Chargement de l'historique...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentDemandeId = null;
+        let demandeData = null;
+
+        // Fonction pour vérifier si une valeur est valide (pas null, pas undefined, pas "N/A", pas vide)
+        function isValidValue(value) {
+            if (!value) return false;
+            if (typeof value === 'string' && (value.trim() === '' || value.trim().toUpperCase() === 'N/A')) {
+                return false;
+            }
+            return true;
+        }
+
+        // Fonction pour obtenir le demandeur d'une demande
+        function getDemandeur(demande) {
+            // Essayer plusieurs chemins pour trouver le demandeur
+            if (demande.idDemandeur) {
+                return demande.idDemandeur;
+            }
+            if (demande && demande.idVisaTransformable && demande.idVisaTransformable.idPasseport && demande.idVisaTransformable.idPasseport.idDemandeur) {
+                return demande.idVisaTransformable.idPasseport.idDemandeur;
+            }
+            return null;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer l'ID de la demande depuis l'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDemandeId = urlParams.get('id');
+            
+            if (!currentDemandeId) {
+                showMessage('error', 'ID de demande manquant');
+                return;
+            }
+            
+            // Charger les détails et l'historique
+            loadDetails();
+            loadHistorique();
+        });
+
+        function loadDetails() {
+            const container = document.getElementById('detailsContainer');
+            
+            fetch(`http://localhost:8000/api/demandes/${currentDemandeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Données détails reçues:', data);
+                    demandeData = data;
+                    displayDetails(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="error">Erreur lors du chargement des détails: ' + error.message + '</div>';
+                });
+        }
+
+        function displayDetails(demande) {
+            const container = document.getElementById('detailsContainer');
+            const demandeur = getDemandeur(demande);
+            
+            let html = '';
+            
+            html += '<div class="detail-info"><span class="detail-label">ID Demande:</span><span class="detail-value">' + demande.id + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Nom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.nom) ? demandeur.nom : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Prénom:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.prenom) ? demandeur.prenom : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Date de naissance:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.dateNaissance) ? new Date(demandeur.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Nationalité:</span><span class="detail-value">' + (demandeur && demandeur.idNationalite && isValidValue(demandeur.idNationalite.libelle) ? demandeur.idNationalite.libelle : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Situation familiale:</span><span class="detail-value">' + (demandeur && demandeur.idSituationFamiliale && isValidValue(demandeur.idSituationFamiliale.libelle) ? demandeur.idSituationFamiliale.libelle : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Adresse Madagascar:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.adresseMada) ? demandeur.adresseMada : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Contact:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.contact) ? demandeur.contact : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Email:</span><span class="detail-value">' + (demandeur && isValidValue(demandeur.email) ? demandeur.email : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Type Visa:</span><span class="detail-value">' + (demande.idTypeVisa && isValidValue(demande.idTypeVisa.libelle) ? demande.idTypeVisa.libelle : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Date Demande:</span><span class="detail-value">' + (demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'Non renseigné') + '</span></div>';
+            html += '<div class="detail-info"><span class="detail-label">Statut:</span><span class="detail-value"><span class="status-badge">' + (demande.idStatut && isValidValue(demande.idStatut.libelle) ? demande.idStatut.libelle : 'Non renseigné') + '</span></span></div>';
+            
+            // Ajouter les boutons d'action
+            html += '<div class="actions-bar">';
+            html += '<button class="btn btn-primary" onclick="goToScan()">Aller au Scan</button>';
+            html += '<button class="btn btn-danger" onclick="generatePDF()">Générer PDF</button>';
+            html += '<button class="btn btn-secondary" onclick="goBack()">Retour à la liste</button>';
+            
+            const isValidee = demande.idStatut && demande.idStatut.id === 2;
+            if (isValidee) {
+                html += '<button class="btn btn-success" disabled>Déjà validée</button>';
+            } else {
+                html += '<button class="btn btn-success" onclick="validerDemande()">Valider la demande</button>';
+            }
+            
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+
+        function loadHistorique() {
+            const container = document.getElementById('historiqueContainer');
+            
+            fetch(`http://localhost:8000/api/demandes/${currentDemandeId}/historique-statuts`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Historique reçu:', data);
+                    if (data.success && data.data && data.data.length > 0) {
+                        let html = '';
+                        data.data.forEach(function(historique) {
+                            const date = new Date(historique.dateUpdate).toLocaleString('fr-FR');
+                            const statut = historique.idStatutDemande ? historique.idStatutDemande.libelle : 'N/A';
+                            const admin = historique.idAdministrateur ? historique.idAdministrateur.nom + ' ' + historique.idAdministrateur.prenom : 'Admin';
+                            
+                            html += '<div class="historique-item">';
+                            html += '<div class="historique-date">' + date + '</div>';
+                            html += '<div class="historique-statut">Statut: ' + statut + '</div>';
+                            html += '<div class="historique-admin">Par: ' + admin + '</div>';
+                            html += '</div>';
+                        });
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Aucun historique trouvé pour cette demande.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="error">Erreur lors du chargement de l\'historique: ' + error.message + '</div>';
+                });
+        }
+
+        function goToScan() {
+            window.location.href = '/demande/scan?id=' + currentDemandeId;
+        }
+
+        function generatePDF() {
+            showMessage('info', 'Génération du PDF en cours...');
+            
+            fetch(`/api/demandes/${currentDemandeId}/pdf`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();
+                    } else {
+                        throw new Error('Erreur lors de la génération du PDF');
+                    }
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `recepice_demande_${currentDemandeId}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    showMessage('success', 'PDF téléchargé avec succès!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Erreur lors de la génération du PDF: ' + error.message);
+                });
+        }
+
+        function validerDemande() {
+            if (confirm('Êtes-vous sûr de vouloir valider cette demande ?')) {
+                fetch('http://localhost:8000/api/demandes/valider', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ids: [currentDemandeId] })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Réponse:', data);
+                    if (data.success) {
+                        showMessage('success', (data.message || 'Demande validée avec succès!'));
+                        setTimeout(() => {
+                            loadDetails();
+                            loadHistorique();
+                        }, 1500);
+                    } else {
+                        showMessage('error', (data.message || 'Erreur lors de la validation.'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Erreur lors de la validation: ' + error.message);
+                });
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/demande/liste';
+        }
+
+        function showMessage(type, message) {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

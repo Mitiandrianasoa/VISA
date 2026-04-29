@@ -148,7 +148,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     UPDATE demande 
     SET id_statut = NEW.id_statut_demande
-    WHERE id_demande = NEW.id_demande;
+    WHERE id = NEW.id_demande;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
