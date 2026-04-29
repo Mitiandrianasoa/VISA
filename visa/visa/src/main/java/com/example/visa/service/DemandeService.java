@@ -196,21 +196,25 @@ public class DemandeService {
         demande.setIdTypeDemande(typeDemandeRepository.findById(demandeDTO.getIdTypeDemande()).orElseThrow(() -> new RuntimeException("Type demande non trouvé avec ID: " + demandeDTO.getIdTypeDemande())));
         demande = demandeRepository.save(demande);
 
-        // Créer l'entrée dans l'historique des statuts pour la création
-        HistoriqueStatutDemande historiqueCreation = new HistoriqueStatutDemande();
-        historiqueCreation.setIdDemande(demande);
-        historiqueCreation.setIdStatutDemande(demande.getIdStatut());
-        
-        // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
-        Administrateur adminParDefaut = new Administrateur();
-        adminParDefaut.setId(1);
-        historiqueCreation.setIdAdministrateur(adminParDefaut);
-        historiqueCreation.setDateUpdate(Instant.now());
-        
-        // Sauvegarder l'historique
-        historiqueStatutDemandeRepository.save(historiqueCreation);
-        
-        System.out.println("Historique du statut créé pour la demande " + demande.getId() + " - Statut: " + demande.getIdStatut().getLibelle());
+        // Créer l'entrée dans l'historique des statuts pour la création (uniquement si ce n'est pas déjà "Validée")
+        if (demande.getIdStatut().getId() != 2) {
+            HistoriqueStatutDemande historiqueCreation = new HistoriqueStatutDemande();
+            historiqueCreation.setIdDemande(demande);
+            historiqueCreation.setIdStatutDemande(demande.getIdStatut());
+            
+            // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
+            Administrateur adminParDefaut = new Administrateur();
+            adminParDefaut.setId(1);
+            historiqueCreation.setIdAdministrateur(adminParDefaut);
+            historiqueCreation.setDateUpdate(Instant.now());
+            
+            // Sauvegarder l'historique
+            historiqueStatutDemandeRepository.save(historiqueCreation);
+            
+            System.out.println("Historique du statut créé pour la demande " + demande.getId() + " - Statut: " + demande.getIdStatut().getLibelle());
+        } else {
+            System.out.println("La demande " + demande.getId() + " est déjà au statut Validée - Pas d'historique créé");
+        }
 
         // Associer les pièces justificatives
         if (demandeDTO.getPieceIds() != null) {
