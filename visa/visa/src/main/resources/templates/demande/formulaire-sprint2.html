@@ -456,12 +456,10 @@
                         <button type="submit" class="btn btn-primary">Soumettre la demande</button>
 <!--                        <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>-->
                     </div>
-                    
-                    </div>
                 </form>
             </div>
         </div>
-        <div id="qrSection" style="display:none; margin-top:20px;">
+         <div id="qrSection" style="display:none; margin-top:20px;">
                         <h2>QR Code de la demande</h2>
                         <p id="qrInfo" style="color:#64748b;"></p>
                         <img id="qrImage" alt="QR Code demande" style="max-width:300px; border:1px solid #e2e8f0; border-radius:8px;" />
@@ -470,6 +468,7 @@
                             <a href="/demande/liste" class="btn btn-primary" style="margin-left:8px;">Aller à la liste</a>
                         </div>
                     </div>
+        </div>
     </main>
 
 <script>
@@ -512,7 +511,7 @@
             return;
         }
         
-        fetch('/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
+        fetch('http://localhost:8000/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
@@ -631,75 +630,85 @@
     document.getElementById('demandeForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const form = e.target;
-        const pieces = Array.from(form.querySelectorAll('input[name="pieces"]:checked')).map(cb => ({ id: parseInt(cb.value) }));
+        const formData = new FormData(this);
+        const data = {};
 
-        const formData = {
-            idTypeVisa: parseInt(form.idTypeVisa.value),
-            idTypeDemande: parseInt(form.idTypeDemande.value),
-            demandeur: {
-                id: selectedDemandeur ? selectedDemandeur.id : null,
-                nom: form.nom.value,
-                prenom: form.prenom.value,
-                dateNaissance: form.dateNaissance.value,
-                idNationalite: parseInt(form.idNationalite.value),
-                idSituationFamiliale: parseInt(form.idSituationFamiliale.value),
-                adresseMada: form.adresseMada.value,
-                contact: form.contact.value,
-                email: form.email.value,
-                passeport: {
-                    numero: form.numeroPasseport.value,
-                    dateDelivrance: form.dateDelivrancePasseport.value,
-                    dateExpiration: form.dateExpirationPasseport.value
+        formData.forEach((value, key) => {
+            if (key.startsWith('visa.')) {
+                if (!data.visaTransformable) {
+                    data.visaTransformable = {};
                 }
-            },
-            pieces: pieces,
-            visaTransformable: null
-        };
+                const visaKey = key.substring(5);
+                data.visaTransformable[visaKey] = value;
+            } else if (key === 'pieceIds') {
+                if (!data.pieceIds) {
+                    data.pieceIds = [];
+                }
+                data.pieceIds.push(parseInt(value));
+            } else {
+                data[key] = value;
+            }
+        });
 
-        if (document.getElementById('hasVisaTransformable').checked) {
-            formData.visaTransformable = {
-                numero: form['visa.numero'].value,
-                dateEntreeTerritoire: form['visa.dateEntreeTerritoire'].value,
-                lieuEntreeTerritoire: form['visa.lieuEntreeTerritoire'].value,
-                numeroVisaTransformable: form['visa.numeroVisaTransformable'].value,
-                dateSortieTerritoire: form['visa.dateSortieTerritoire'].value || null
-            };
+        // Convertir les IDs en entiers
+        if (data.idNationalite) data.idNationalite = parseInt(data.idNationalite);
+        if (data.idSituationFamiliale) data.idSituationFamiliale = parseInt(data.idSituationFamiliale);
+        if (data.idTypeVisa) data.idTypeVisa = parseInt(data.idTypeVisa);
+        if (data.idTypeDemande) data.idTypeDemande = parseInt(data.idTypeDemande);
+        if (data.idDemandeur) data.idDemandeur = parseInt(data.idDemandeur);
+
+        // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
+        if (selectedDemandeur) {
+            data.idDemandeur = selectedDemandeur;
+            // Pour un duplicata avec demandeur existant, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
+            delete data.visaTransformable;
         }
 
-        fetch('/api/demandes', {
+        console.log('Données envoyées:', data);
+        fetch('http://localhost:8000/api/demandes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const demandeId = data.id;
-                const qrSection = document.getElementById('qrSection');
-                const qrImage = document.getElementById('qrImage');
-                const qrInfo = document.getElementById('qrInfo');
-                const qrDownloadLink = document.getElementById('qrDownloadLink');
-                const pageHeader = document.querySelector('.page-header');
-                
-                form.style.display = 'none';
-                if(pageHeader) pageHeader.style.display = 'none';
+        
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Result:', result);
+                if (result.success) {
+                    const numeroDemande = result.id;
+                    const numeroPasseport = data.numeroPasseport;
 
-                qrSection.style.display = 'block';
-                qrInfo.textContent = `Demande N°${demandeId} enregistrée. Veuillez scanner le QR code pour passer à l'étape suivante (scan des pièces).`;
-                
-                const qrCodeUrl = `/qrcode/demande/${demandeId}`;
-                qrImage.src = qrCodeUrl;
-                qrDownloadLink.href = qrCodeUrl;
+                    const qrUrl = '/api/qrcode/generate-demande'
+                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
+                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
+                        + '&size=300';
 
-            } else {
-                alert('Erreur lors de la soumission : ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Une erreur technique est survenue. Veuillez vérifier la console.');
-        });
+                    const qrSection = document.getElementById('qrSection');
+                    const qrImage = document.getElementById('qrImage');
+                    const qrInfo = document.getElementById('qrInfo');
+                    const qrDownloadLink = document.getElementById('qrDownloadLink');
+
+                    // Cacher le formulaire
+                    document.getElementById('demandeForm').style.display = 'none';
+                    
+                    // Afficher la section QR
+                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
+                    qrImage.src = qrUrl;
+                    qrDownloadLink.href = qrUrl;
+                    qrSection.style.display = 'block';
+                } else {
+                    alert('Erreur: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors de la soumission: ' + error.message);
+            });
     });
 </script>
 </body>

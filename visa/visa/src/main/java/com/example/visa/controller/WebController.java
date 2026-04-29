@@ -30,7 +30,7 @@ public class WebController {
         model.addAttribute("typesVisa", typesVisa);
         model.addAttribute("typesDemande", typesDemande);
         
-        return "demande/formulaire";
+        return "demande/formulaire-sprint2";
     }
 
     @GetMapping("/demande/duplicata")
