@@ -539,19 +539,19 @@
         selectedDemandeur = id;
         document.getElementById('searchResults').innerHTML = '<p style="color: #065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
         
-        const typeDemande = document.getElementById('idTypeDemande').value;
+        // Cacher la section visa transformable car on utilise le passeport existant
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
-
-        // Si c'est un duplicata, on affiche la section et on cherche les demandes existantes
-        if (typeDemande === '2' && visaTransformableSection) {
-            visaTransformableSection.style.display = 'block';
-            document.getElementById('hasVisaTransformable').checked = true;
-            toggleVisaTransformable(); // Pour afficher les champs
-            rechercherDemandesDuplicata(id);
-        } else if (visaTransformableSection) {
-            // Pour les autres types de demande, on cache la section
+        if (visaTransformableSection) {
             visaTransformableSection.style.display = 'none';
         }
+        // Vider les champs du visa transformable au cas où
+        document.getElementById('hasVisaTransformable').checked = false;
+        document.getElementById('visaTransformableFields').style.display = 'none';
+        document.getElementById('visaNumero').value = '';
+        document.getElementById('visaDateEntree').value = '';
+        document.getElementById('visaLieuEntree').value = '';
+        document.getElementById('visaNumeroTransformable').value = '';
+        document.getElementById('visaDateSortie').value = '';
         
         // Charger les données du demandeur et pré-remplir le formulaire
         fetch('http://localhost:8000/api/demandes/demandeurs/' + id)
@@ -717,14 +717,11 @@
         if (data.idTypeDemande) data.idTypeDemande = parseInt(data.idTypeDemande);
         if (data.idDemandeur) data.idDemandeur = parseInt(data.idDemandeur);
 
-        // Gérer le cas du duplicata sans effacer les données nécessaires
+        // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
         if (selectedDemandeur) {
             data.idDemandeur = selectedDemandeur;
-            // Pour un duplicata, on s'assure que les données du visa transformable sont bien là
-            // si la checkbox est cochée. Le `delete` est trop agressif.
-            if (!document.getElementById('hasVisaTransformable').checked) {
-                 delete data.visaTransformable;
-            }
+            // Pour un duplicata avec demandeur existant, on supprime les infos de visa transformable
+            delete data.visaTransformable;
         }
 
         console.log('Données envoyées:', data);
