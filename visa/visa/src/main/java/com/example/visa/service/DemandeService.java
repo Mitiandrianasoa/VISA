@@ -245,6 +245,12 @@ public class DemandeService {
             Demande demande = demandeRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Demande non trouvée avec l'ID: " + id));
             
+            // Vérifier si la demande est déjà validée
+            if (demande.getIdStatut() != null && demande.getIdStatut().getId() == 2) {
+                System.out.println("La demande " + id + " est déjà validée - Ignorer");
+                continue; // Passer à la demande suivante
+            }
+            
             // Créer l'entrée dans l'historique des statuts
             HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
             historique.setIdDemande(demande);

@@ -128,7 +128,7 @@ public class DemandeController {
     @GetMapping("/{id}/historique-statuts")
     public ResponseEntity<?> getHistoriqueStatuts(@PathVariable Integer id) {
         try {
-            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findByIdDemandeIdOrderByDateUpdateDesc(id);
+            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findByDemandeIdOrderByDateUpdateDesc(id);
             return ResponseEntity.ok(new Object() {
                 public boolean success = true;
                 public List<HistoriqueStatutDemande> data = historique;
@@ -145,7 +145,7 @@ public class DemandeController {
     @GetMapping("/historique-global")
     public ResponseEntity<?> getHistoriqueGlobal() {
         try {
-            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findAllByOrderByDateUpdateDesc();
+            List<HistoriqueStatutDemande> historique = historiqueStatutDemandeRepository.findAllOrderByDateUpdateDesc();
             return ResponseEntity.ok(new Object() {
                 public boolean success = true;
                 public List<HistoriqueStatutDemande> data = historique;
