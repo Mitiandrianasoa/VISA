@@ -2,7 +2,9 @@ package com.example.visa.controller;
 
 import com.example.visa.dto.DemandeDTO;
 import com.example.visa.entities.Demande;
+import com.example.visa.entities.Demandeur;
 import com.example.visa.entities.Nationalite;
+import com.example.visa.entities.Passeport;
 import com.example.visa.entities.PieceJustificative;
 import com.example.visa.entities.SituationFamiliale;
 import com.example.visa.entities.TypeVisa;
@@ -40,6 +42,26 @@ public class DemandeController {
     @GetMapping("/pieces/{typeVisaId}")
     public ResponseEntity<List<PieceJustificative>> getPiecesByTypeVisa(@PathVariable Integer typeVisaId) {
         return ResponseEntity.ok(demandeService.getPiecesByTypeVisa(typeVisaId));
+    }
+
+    @GetMapping("/demandeurs/recherche")
+    public ResponseEntity<List<Demandeur>> rechercherDemandeur(@RequestParam String nom, @RequestParam String prenom) {
+        return ResponseEntity.ok(demandeService.rechercherDemandeur(nom, prenom));
+    }
+
+    @GetMapping("/demandeurs/{id}")
+    public ResponseEntity<Demandeur> getDemandeurById(@PathVariable Integer id) {
+        return ResponseEntity.ok(demandeService.getDemandeurById(id));
+    }
+
+    @GetMapping("/demandeurs/{id}/demandes")
+    public ResponseEntity<List<Demande>> getDemandesByDemandeurId(@PathVariable Integer id) {
+        return ResponseEntity.ok(demandeService.getDemandesByDemandeurId(id));
+    }
+
+    @GetMapping("/demandeurs/{id}/passeports")
+    public ResponseEntity<List<Passeport>> getPasseportsByDemandeurId(@PathVariable Integer id) {
+        return ResponseEntity.ok(demandeService.getPasseportsByDemandeurId(id));
     }
 
     @PostMapping

@@ -1,5 +1,6 @@
 package com.example.visa.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,7 @@ public class Passeport {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_demandeur", nullable = false)
+    @JsonIgnore
     private Demandeur idDemandeur;
 
     @Column(name = "date_delivrance", nullable = false)
