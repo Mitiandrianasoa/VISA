@@ -547,7 +547,8 @@
                             const typeVisa = demande.idTypeVisa ? demande.idTypeVisa.libelle : 'Non renseigné';
                             const dateDemande = demande.dateDemande ? new Date(demande.dateDemande).toLocaleDateString('fr-FR') : 'Non renseigné';
                             const statut = demande.idStatut ? demande.idStatut.libelle : 'Non renseigné';
-                            const isValidee = demande.idStatut && demande.idStatut.id === 2;
+                            const isValidee = demande.idStatut && (demande.idStatut.id === 2 || demande.idStatut.id === 3 || demande.idStatut.id === 4);
+                            const estEnAttente = demande.idStatut && demande.idStatut.id === 1;
                             
                             html += '<tr>';
                             html += '<td><strong>' + demande.id + '</strong></td>';
@@ -560,10 +561,10 @@
                             html += '<button class="btn-details" onclick="goToDetails(' + demande.id + ')">Détails</button>';
                             html += '<button class="btn-pdf" style="padding: 8px 12px; font-size: 13px; margin: 0; background-color: #d32f2f; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="generatePDF(' + demande.id + ')">PDF</button>';
                             html += '<button class="btn-scan" style="padding: 8px 12px; font-size: 13px; margin: 0; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="goToScan(' + demande.id + ')">Scan</button>';
-                            if (isValidee) {
-                                html += '<button class="status-validee" disabled>Validée</button>';
-                            } else {
+                            if (estEnAttente) {
                                 html += '<button class="btn-valider" style="padding: 8px 12px; font-size: 13px; margin: 0;" onclick="validerUneDemande(' + demande.id + ')">Valider</button>';
+                            } else {
+                                html += '<button class="status-validee" disabled>' + statut + '</button>';
                             }
                             html += '</td>';
                             html += '</tr>';

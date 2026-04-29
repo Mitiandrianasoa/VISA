@@ -454,11 +454,11 @@
             html += '<button class="btn btn-danger" onclick="generatePDF()">Générer PDF</button>';
             html += '<button class="btn btn-secondary" onclick="goBack()">Retour à la liste</button>';
             
-            const isValidee = demande.idStatut && demande.idStatut.id === 2;
-            if (isValidee) {
-                html += '<button class="btn btn-success" disabled>Déjà validée</button>';
-            } else {
+            const estEnAttente = demande.idStatut && demande.idStatut.id === 1;
+            if (estEnAttente) {
                 html += '<button class="btn btn-success" onclick="validerDemande()">Valider la demande</button>';
+            } else {
+                html += '<button class="btn btn-secondary" disabled>' + (demande.idStatut ? demande.idStatut.libelle : 'Statut inconnu') + '</button>';
             }
             
             html += '</div>';

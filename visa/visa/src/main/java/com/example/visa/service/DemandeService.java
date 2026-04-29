@@ -173,14 +173,8 @@ public class DemandeService {
         // Déterminer le statut selon les règles de duplicata
         Integer statutId;
         if (demandeDTO.getIdTypeDemande() != null && demandeDTO.getIdTypeDemande() == 2) {
-            // Type de demande = Duplicata
-            if (demandeurExiste) {
-                // Demandeur existe déjà dans la base : statut Validée (2)
-                statutId = 2;
-            } else {
-                // Nouveau demandeur : statut Approuvée (3) - régularisation administrative
-                statutId = 3;
-            }
+            // Type de demande = Duplicata : toujours approuvé automatiquement
+            statutId = 3; // Approuvée
         } else {
             // Nouvelle demande classique : statut En attente (1)
             statutId = 1;
@@ -196,25 +190,10 @@ public class DemandeService {
         demande.setIdTypeDemande(typeDemandeRepository.findById(demandeDTO.getIdTypeDemande()).orElseThrow(() -> new RuntimeException("Type demande non trouvé avec ID: " + demandeDTO.getIdTypeDemande())));
         demande = demandeRepository.save(demande);
 
-        // Créer l'entrée dans l'historique des statuts pour la création (uniquement si ce n'est pas déjà "Validée")
-        if (demande.getIdStatut().getId() != 2) {
-            HistoriqueStatutDemande historiqueCreation = new HistoriqueStatutDemande();
-            historiqueCreation.setIdDemande(demande);
-            historiqueCreation.setIdStatutDemande(demande.getIdStatut());
-            
-            // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
-            Administrateur adminParDefaut = new Administrateur();
-            adminParDefaut.setId(1);
-            historiqueCreation.setIdAdministrateur(adminParDefaut);
-            historiqueCreation.setDateUpdate(Instant.now());
-            
-            // Sauvegarder l'historique
-            historiqueStatutDemandeRepository.save(historiqueCreation);
-            
-            System.out.println("Historique du statut créé pour la demande " + demande.getId() + " - Statut: " + demande.getIdStatut().getLibelle());
-        } else {
-            System.out.println("La demande " + demande.getId() + " est déjà au statut Validée - Pas d'historique créé");
-        }
+        // Créer l'entrée dans l'historique des statuts pour la création (toutes les demandes)
+        creerHistoriqueCentralise(demande, demande.getIdStatut().getId(), "création demande");
+        
+        System.out.println("HISTORIQUE CENTRALISÉ - création demande - Demande ID: " + demande.getId() + " - Statut: " + demande.getIdStatut().getLibelle());
 
         // Associer les pièces justificatives
         if (demandeDTO.getPieceIds() != null) {
@@ -255,26 +234,50 @@ public class DemandeService {
                 continue; // Passer à la demande suivante
             }
             
-            // Créer l'entrée dans l'historique des statuts
-            HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
-            historique.setIdDemande(demande);
-            historique.setIdStatutDemande(statutValide);
-            
-            // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
-            Administrateur adminParDefaut = new Administrateur();
-            adminParDefaut.setId(1);
-            historique.setIdAdministrateur(adminParDefaut);
-            historique.setDateUpdate(Instant.now());
-            
-            // Sauvegarder l'historique
-            historiqueStatutDemandeRepository.save(historique);
-            
+            creerHistoriqueCentralise(demande, statutValide.getId(), "validation");
+
             // Mettre à jour le statut de la demande
             demande.setIdStatut(statutValide);
             demandeRepository.save(demande);
             
             System.out.println("Historique du statut créé pour la demande " + id + " - Statut: VALIDÉ");
         }
+    }
+
+    /**
+     * Méthode centralisée pour créer un historique pour n'importe quelle action
+     * Crée systématiquement un historique pour TOUTES les actions
+     */
+    public void creerHistoriqueCentralise(Demande demande, Integer nouveauStatutId, String nomOperation) {
+        // Créer systématiquement l'historique sans vérifier s'il existe déjà
+        HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
+        historique.setIdDemande(demande);
+        
+        // Récupérer le statut correspondant
+        StatutDemande statut = statutDemandeRepository.findById(nouveauStatutId)
+                .orElseThrow(() -> new RuntimeException("Statut non trouvé avec l'ID: " + nouveauStatutId));
+        historique.setIdStatutDemande(statut);
+        
+        // Utiliser l'administrateur par défaut (ID 1)
+        Administrateur adminParDefaut = new Administrateur();
+        adminParDefaut.setId(1);
+        historique.setIdAdministrateur(adminParDefaut);
+        historique.setDateUpdate(Instant.now());
+        
+        // Sauvegarder l'historique
+        historiqueStatutDemandeRepository.save(historique);
+        
+        // Mettre à jour le statut de la demande
+        demande.setIdStatut(statut);
+        demandeRepository.save(demande);
+        
+        System.out.println("HISTORIQUE CENTRALISÉ - " + nomOperation + " - Demande ID: " + demande.getId() + " - Statut: " + statut.getLibelle());
+    }
+
+    private boolean historiqueExisteDeja(Integer demandeId, Integer statutId) {
+        List<HistoriqueStatutDemande> historiques = historiqueStatutDemandeRepository.findByDemandeIdOrderByDateUpdateDesc(demandeId);
+        return historiques.stream()
+                .anyMatch(h -> h.getIdStatutDemande() != null && h.getIdStatutDemande().getId().equals(statutId));
     }
 
     public List<HistoriqueStatutDemande> getHistoriqueByDemandeId(Integer demandeId) {

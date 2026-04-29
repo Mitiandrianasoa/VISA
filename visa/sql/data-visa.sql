@@ -18,7 +18,11 @@ INSERT INTO type_demande (id, code, libelle) VALUES
 INSERT INTO statut_demande (id, code, libelle) VALUES
 (1, 'EN_ATTENTE', 'En attente'),
 (2, 'VALIDE', 'Validée'),
-(3, 'APPROUVEE', 'Approuvée');
+(3, 'APPROUVEE', 'Approuvée'),
+(4, 'SCAN', 'Scan terminé');
+
+INSERT INTO statut_demande (id, code, libelle) VALUES
+(4, 'SCAN', 'Scan terminé');
 
 -- ================================
 -- NATIONALITE

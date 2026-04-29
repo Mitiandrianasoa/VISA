@@ -29,7 +29,7 @@ public class ScanFileService {
     private final ScanFileRepository scanFileRepository;
     private final DemandeRepository demandeRepository;
     private final StatutDemandeRepository statutDemandeRepository;
-    private final HistoriqueStatutDemandeRepository historiqueStatutDemandeRepository;
+    private final DemandeService demandeService;
 
     @Value("${upload.path:uploads/scans}")
     private String uploadPath;
@@ -101,28 +101,13 @@ public class ScanFileService {
         }
 
         // Changer le statut à "Scan terminé"
-        StatutDemande scanTermine = statutDemandeRepository.findByCode("SCAN_TERMINE")
-                .orElseThrow(() -> new IllegalArgumentException("Statut SCAN_TERMINE non trouvé"));
+        StatutDemande scanTermine = statutDemandeRepository.findByCode("SCAN")
+                .orElseThrow(() -> new IllegalArgumentException("Statut SCAN non trouvé"));
 
-        // Créer l'entrée dans l'historique des statuts
-        HistoriqueStatutDemande historique = new HistoriqueStatutDemande();
-        historique.setIdDemande(demande);
-        historique.setIdStatutDemande(scanTermine);
+        // Utiliser la méthode centralisée pour créer l'historique
+        demandeService.creerHistoriqueCentralise(demande, scanTermine.getId(), "scan terminé");
         
-        // Utiliser un administrateur par défaut (ID 1) - à adapter selon votre système d'authentification
-        Administrateur adminParDefaut = new Administrateur();
-        adminParDefaut.setId(1);
-        historique.setIdAdministrateur(adminParDefaut);
-        historique.setDateUpdate(Instant.now());
-        
-        // Sauvegarder l'historique
-        historiqueStatutDemandeRepository.save(historique);
-        
-        // Mettre à jour le statut de la demande
-        demande.setIdStatut(scanTermine);
-        demandeRepository.save(demande);
-        
-        System.out.println("Historique du statut créé pour la demande " + demandeId + " - Statut: SCAN_TERMINE");
+        System.out.println("HISTORIQUE CENTRALISÉ - scan terminé - Demande ID: " + demandeId + " - Statut: " + scanTermine.getLibelle());
     }
 
     public byte[] generatePDF(Integer demandeId) throws IOException {
