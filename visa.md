@@ -74,5 +74,5 @@ Mitia
 sprint 4: [frontend VUE]
     - frontend:
         - demande ->  generation QR code -> 
-        - liste de demande et de status par rapport un numero de passeport(par ordre chronologique)/numero demande(cette deamnde afficher en premier).
+        - liste des historique des demande et de status par rapport un numero de passeport(par ordre chronologique)/numero demande(cette deamnde afficher en premier).
         - utilisation API depuis notre  spring boot. 

@@ -20,7 +20,7 @@ public class DemandeListeApiService {
 
         // Critère 1 : recherche par numéro passeport (+ option prioriser une demande)
         if (numeroPasseportNettoye != null && !numeroPasseportNettoye.isEmpty()) {
-            return demandeListeApiRepository.rechercherPourApi(numeroPasseportNettoye, numeroDemande);
+            return demandeListeApiRepository.rechercherPourApi(numeroPasseportNettoye, String.valueOf(numeroDemande));
         }
 
         // Critère 2 : si passeport absent mais numéro demande présent
