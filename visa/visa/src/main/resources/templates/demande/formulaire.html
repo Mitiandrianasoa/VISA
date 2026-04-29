@@ -454,7 +454,7 @@
 
                     <div style="margin-top: 25px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary">Soumettre la demande</button>
-<!--                        <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>-->
+                        <!-- <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button> -->
                     </div>
                 </form>
             </div>
@@ -484,19 +484,17 @@
         const typeDemande = document.getElementById('idTypeDemande').value;
         const searchSection = document.getElementById('searchSection');
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
-
+        
         // Si type de demande = Duplicata (id=2), afficher la section de recherche
         if (typeDemande === '2') {
             searchSection.style.display = 'block';
-            // On cache la section transformable pour l'instant, elle sera affichée
-            // uniquement après la sélection d'un demandeur.
-            if (visaTransformableSection) {
-                visaTransformableSection.style.display = 'none';
+            // Si aucun demandeur sélectionné, afficher visa transformable (nouveau demandeur)
+            if (!selectedDemandeur && visaTransformableSection) {
+                visaTransformableSection.style.display = 'block';
             }
         } else {
-            // Pour tous les autres types, on cache la recherche et on affiche la section transformable
             searchSection.style.display = 'none';
-            selectedDemandeur = null; // Réinitialiser le demandeur sélectionné
+            selectedDemandeur = null;
             if (visaTransformableSection) {
                 visaTransformableSection.style.display = 'block';
             }
@@ -544,7 +542,7 @@
         if (visaTransformableSection) {
             visaTransformableSection.style.display = 'none';
         }
-        // Vider les champs du visa transformable au cas où
+        // Vider les champs du visa transformable
         document.getElementById('hasVisaTransformable').checked = false;
         document.getElementById('visaTransformableFields').style.display = 'none';
         document.getElementById('visaNumero').value = '';
@@ -586,64 +584,6 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-            });
-    }
-
-    function rechercherDemandesDuplicata(demandeurId) {
-        const container = document.getElementById('visaTransformableFields');
-        
-        fetch(`http://localhost:8000/api/demandes-liste?idDemandeur=${demandeurId}`)
-            .then(response => response.json())
-            .then(demandes => {
-                let html = '<div class="form-group"><label for="demandeADupliquer">Sélectionnez la demande à dupliquer :</label>';
-                if (demandes && demandes.length > 0) {
-                    html += '<select id="demandeADupliquer" name="visa.idDemandePrecedente" class="form-control" onchange="preRemplirVisaTransformable(this.value, ' + JSON.stringify(demandes).replace(/"/g, '&quot;') + ')">';
-                    html += '<option value="">Sélectionner une demande...</option>';
-                    demandes.forEach(demande => {
-                        html += `<option value="${demande.id}">Demande N°${demande.numero} du ${demande.dateDemande}</option>`;
-                    });
-                    html += '</select>';
-                } else {
-                    html = '<p style="color: #64748b;">Aucune demande antérieure trouvée pour ce demandeur.</p>';
-                }
-                html += '</div>';
-                // On injecte le select au début des champs de visa transformable
-                container.innerHTML = html + container.innerHTML;
-            })
-            .catch(error => {
-                console.error('Erreur lors de la recherche des demandes pour duplicata:', error);
-            });
-    }
-
-    function preRemplirVisaTransformable(demandeId) {
-        if (!demandeId) {
-            // Vider les champs si l'utilisateur déselectionne
-            document.getElementById('visaNumero').value = '';
-            document.getElementById('visaDateEntree').value = '';
-            document.getElementById('visaLieuEntree').value = '';
-            document.getElementById('visaNumeroTransformable').value = '';
-            document.getElementById('visaDateSortie').value = '';
-            return;
-        }
-
-        // Faire un appel API pour obtenir les détails complets de la demande sélectionnée
-        fetch(`http://localhost:8000/api/demandes/${demandeId}`)
-            .then(response => response.json())
-            .then(demandeDetails => {
-                if (demandeDetails && demandeDetails.visaTransformable) {
-                    const visa = demandeDetails.visaTransformable;
-                    document.getElementById('visaNumero').value = visa.numero || '';
-                    document.getElementById('visaDateEntree').value = visa.dateEntreeTerritoire || '';
-                    document.getElementById('visaLieuEntree').value = visa.lieuEntreeTerritoire || '';
-                    document.getElementById('visaNumeroTransformable').value = visa.numeroVisaTransformable || '';
-                    document.getElementById('visaDateSortie').value = visa.dateSortieTerritoire || '';
-                } else if (demandeDetails) {
-                    // Si la demande n'a pas de visa transformable, on peut au moins utiliser son propre numéro
-                    document.getElementById('visaNumero').value = demandeDetails.numero || '';
-                }
-            })
-            .catch(error => {
-                console.error('Erreur lors de la récupération des détails de la demande:', error);
             });
     }
 
@@ -720,7 +660,7 @@
         // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
         if (selectedDemandeur) {
             data.idDemandeur = selectedDemandeur;
-            // Pour un duplicata avec demandeur existant, on supprime les infos de visa transformable
+            // Pour un duplicata avec demandeur existant, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
             delete data.visaTransformable;
         }
 
@@ -732,12 +672,11 @@
             },
             body: JSON.stringify(data)
         })
-        
             .then(response => {
                 console.log('Response status:', response.status);
                 return response.json();
             })
-            .then(result => {
+             .then(result => {
                 console.log('Result:', result);
                 if (result.success) {
                     const numeroDemande = result.id;
