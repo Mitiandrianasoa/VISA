@@ -456,9 +456,19 @@
                         <button type="submit" class="btn btn-primary">Soumettre la demande</button>
                         <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button>
                     </div>
+                    
                 </form>
             </div>
         </div>
+        <div id="qrSection" style="display:none; margin-top:20px;">
+                        <h2>QR Code de la demande</h2>
+                        <p id="qrInfo" style="color:#64748b;"></p>
+                        <img id="qrImage" alt="QR Code demande" style="max-width:300px; border:1px solid #e2e8f0; border-radius:8px;" />
+                        <div style="margin-top:12px;">
+                            <a id="qrDownloadLink" class="btn btn-secondary" download="qrcode-demande.png">Télécharger QR</a>
+                            <a href="/demande/liste" class="btn btn-primary" style="margin-left:8px;">Aller à la liste</a>
+                        </div>
+                    </div>
     </main>
 
 <script>
@@ -669,7 +679,27 @@
             .then(result => {
                 console.log('Result:', result);
                 if (result.success) {
-                    window.location.href = '/demande/liste';
+                    const numeroDemande = result.id;
+                    const numeroPasseport = data.numeroPasseport;
+
+                    const qrUrl = '/api/qrcode/generate-demande'
+                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
+                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
+                        + '&size=300';
+
+                    const qrSection = document.getElementById('qrSection');
+                    const qrImage = document.getElementById('qrImage');
+                    const qrInfo = document.getElementById('qrInfo');
+                    const qrDownloadLink = document.getElementById('qrDownloadLink');
+
+                    // Cacher le formulaire
+                    document.getElementById('demandeForm').style.display = 'none';
+                    
+                    // Afficher la section QR
+                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
+                    qrImage.src = qrUrl;
+                    qrDownloadLink.href = qrUrl;
+                    qrSection.style.display = 'block';
                 } else {
                     alert('Erreur: ' + result.message);
                 }
