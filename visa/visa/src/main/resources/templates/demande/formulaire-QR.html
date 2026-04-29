@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle Demande - Visa Madagascar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #2c5282 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 3px solid #4a90d9;
+        }
+        
+        .sidebar-nav a svg {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+        }
+        
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 28px;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+        
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #1e3a5f;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #334155;
+            font-size: 13px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-item.obligatoire {
+            border-left: 3px solid #ef4444;
+        }
+        
+        .checkbox-item.obligatoire::after {
+            content: " *";
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4a90d9;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+            transform: translateY(-1px);
+        }
+        
+        .visa-transformable-section {
+            background-color: #fef3c7;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            margin-top: 20px;
+        }
+        
+        .visa-transformable-section h2 {
+            margin-top: 0;
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 10px 0;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .sidebar-nav a span {
+                display: none;
+            }
+            
+            .sidebar-nav a {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .sidebar-nav a svg {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 60px;
+                padding: 15px;
+            }
+            
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Visa Madagascar</h2>
+            <p>Système de gestion</p>
+        </div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/demande/nouveau" class="active">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nouvelle Demande</span>
+                </a>
+            </li>
+            <li>
+                <a href="/demande/liste">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Liste des Demandes</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>Nouvelle Demande de Visa</h1>
+                <p>Remplissez le formulaire ci-dessous pour soumettre votre demande</p>
+            </div>
+            
+            <div class="card">
+                <form id="demandeForm" method="post" action="/demande/soumettre">
+
+                    <h2>État Civil</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nom">Nom *</label>
+                            <input type="text" id="nom" name="nom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prenom">Prénom</label>
+                            <input type="text" id="prenom" name="prenom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dateNaissance">Date de naissance *</label>
+                            <input type="date" id="dateNaissance" name="dateNaissance" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idNationalite">Nationalité *</label>
+                            <select id="idNationalite" name="idNationalite" required>
+                                <option value="">Sélectionner...</option>
+                                <option th:each="n : ${nationalites}" th:value="${n.id}" th:text="${n.libelle}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="idSituationFamiliale">Situation familiale *</label>
+                        <select id="idSituationFamiliale" name="idSituationFamiliale" required>
+                            <option value="">Sélectionner...</option>
+                            <option th:each="sf : ${situationsFamiliales}" th:value="${sf.id}" th:text="${sf.libelle}"></option>
+                        </select>
+                    </div>
+
+                    <h2>Adresse et Contact</h2>
+                    <div class="form-group">
+                        <label for="adresseMada">Adresse à Madagascar *</label>
+                        <textarea id="adresseMada" name="adresseMada" rows="2" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contact">Numéro de contact *</label>
+                            <input type="text" id="contact" name="contact" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email">
+                        </div>
+                    </div>
+
+                    <h2>Passeport</h2>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label for="numeroPasseport">Numéro de passeport *</label>
+                            <input type="text" id="numeroPasseport" name="numeroPasseport" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dateDelivrancePasseport">Date délivrance *</label>
+                            <input type="date" id="dateDelivrancePasseport" name="dateDelivrancePasseport" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dateExpirationPasseport">Date expiration *</label>
+                            <input type="date" id="dateExpirationPasseport" name="dateExpirationPasseport" required>
+                        </div>
+                    </div>
+
+                    <div class="visa-transformable-section">
+                        <h2>Visa Transformable (optionnel)</h2>
+                        <p style="color: #92400e; margin-bottom: 15px;">Cochez cette case si vous transformez un visa existant</p>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="hasVisaTransformable" onchange="toggleVisaTransformable()" style="width: auto; margin-right: 10px;">
+                                Je transforme un visa existant
+                            </label>
+                        </div>
+                        <div id="visaTransformableFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="visaNumero">Numéro du visa existant à transformer *</label>
+                                <input type="text" id="visaNumero" name="visa.numero">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="visaDateEntree">Date d'entrée sur le territoire *</label>
+                                    <input type="date" id="visaDateEntree" name="visa.dateEntreeTerritoire">
+                                </div>
+                                <div class="form-group">
+                                    <label for="visaLieuEntree">Lieu d'entrée sur le territoire *</label>
+                                    <input type="text" id="visaLieuEntree" name="visa.lieuEntreeTerritoire">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="visaNumeroTransformable">Numéro du nouveau visa transformé *</label>
+                                    <input type="text" id="visaNumeroTransformable" name="visa.numeroVisaTransformable">
+                                </div>
+                                <div class="form-group">
+                                    <label for="visaDateSortie">Date de sortie du territoire</label>
+                                    <input type="date" id="visaDateSortie" name="visa.dateSortieTerritoire">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2>Type de Demande</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="idTypeVisa">Type de visa demandé *</label>
+                            <select id="idTypeVisa" name="idTypeVisa" required onchange="loadPieces()">
+                                <option value="">Sélectionner...</option>
+                                <option th:each="tv : ${typesVisa}" th:value="${tv.id}" th:text="${tv.libelle}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="idTypeDemande">Type de demande *</label>
+                            <select id="idTypeDemande" name="idTypeDemande" required>
+                                <option value="1">Nouvelle demande</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h2>Pièces Justificatives</h2>
+                    <p style="color: #64748b; margin-bottom: 10px;">Sélectionnez les pièces que vous fournissez :</p>
+                    <div id="piecesContainer" class="checkbox-group">
+                        <p style="color: #64748b;">Veuillez d'abord sélectionner un type de visa pour voir les pièces requises.</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 25px;">Soumettre la demande</button>
+                    <div id="qrSection" style="display:none; margin-top:20px;">
+                        <h2>QR Code de la demande</h2>
+                        <p id="qrInfo" style="color:#64748b;"></p>
+                        <img id="qrImage" alt="QR Code demande" style="max-width:300px; border:1px solid #e2e8f0; border-radius:8px;" />
+                        <div style="margin-top:12px;">
+                            <a id="qrDownloadLink" class="btn btn-secondary" download="qrcode-demande.png">Télécharger QR</a>
+                            <a href="/demande/liste" class="btn btn-primary" style="margin-left:8px;">Aller à la liste</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+<script>
+    function toggleVisaTransformable() {
+        const checkbox = document.getElementById('hasVisaTransformable');
+        const fields = document.getElementById('visaTransformableFields');
+        fields.style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    function loadPieces() {
+        const typeVisaId = document.getElementById('idTypeVisa').value;
+        const container = document.getElementById('piecesContainer');
+
+        if (!typeVisaId) {
+            container.innerHTML = '<p style="color: #64748b;">Veuillez d\'abord sélectionner un type de visa pour voir les pièces requises.</p>';
+            return;
+        }
+
+        fetch('http://localhost:8000/api/demandes/pieces/' + typeVisaId)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Données pièces reçues:', data);
+                if (data && data.length > 0) {
+                    var html = '';
+                    data.forEach(function(piece) {
+                        console.log('Pièce:', piece);
+                        var obligatoireClass = piece.obligatoire ? 'obligatoire' : '';
+                        var label = piece.libelle || piece.code || 'Sans nom';
+                        var facultatifText = piece.obligatoire ? '' : ' (facultatif)';
+                        html += '<div class="checkbox-item ' + obligatoireClass + '">' +
+                            '<input type="checkbox" name="pieceIds" value="' + piece.id + '" id="piece_' + piece.id + '">' +
+                            '<label for="piece_' + piece.id + '">' + label + facultatifText + '</label>' +
+                            '</div>';
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="color: #64748b;">Aucune pièce requise pour ce type de visa.</p>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<p style="color: #ef4444;">Erreur lors du chargement des pièces.</p>';
+                console.error('Error:', error);
+            });
+    }
+
+    document.getElementById('demandeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {};
+
+        formData.forEach((value, key) => {
+            if (key.startsWith('visa.')) {
+                if (!data.visaTransformable) {
+                    data.visaTransformable = {};
+                }
+                const visaKey = key.substring(5);
+                data.visaTransformable[visaKey] = value;
+            } else if (key === 'pieceIds') {
+                if (!data.pieceIds) {
+                    data.pieceIds = [];
+                }
+                data.pieceIds.push(parseInt(value));
+            } else {
+                data[key] = value;
+            }
+        });
+
+        console.log('Données envoyées:', data);
+        fetch('http://localhost:8000/api/demandes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Result:', result);
+                if (result.success) {
+                    const numeroDemande = result.id; // id retourné par ton API createDemande
+                    const numeroPasseport = data.numeroPasseport;
+
+                    const qrUrl = 'http://localhost:8000/api/qrcode/generate-demande'
+                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
+                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
+                        + '&size=300';
+
+                    const qrSection = document.getElementById('qrSection');
+                    const qrImage = document.getElementById('qrImage');
+                    const qrInfo = document.getElementById('qrInfo');
+                    const qrDownloadLink = document.getElementById('qrDownloadLink');
+
+                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
+                    qrImage.src = qrUrl;
+                    qrDownloadLink.href = qrUrl;
+                    qrSection.style.display = 'block';
+
+                    // Optionnel: désactiver le submit après succès
+                    // document.querySelector('#demandeForm button[type="submit"]').disabled = true;
+                } else {
+                    alert('Erreur: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors de la soumission: ' + error.message);
+            });
+    });
+</script>
+</body>
+</html>
