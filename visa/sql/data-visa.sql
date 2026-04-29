@@ -9,7 +9,8 @@ INSERT INTO type_visa (id, code, libelle) VALUES
 -- TYPE DEMANDE
 -- ================================
 INSERT INTO type_demande (id, code, libelle) VALUES
-(1, 'NOUV', 'Nouvelle demande');
+(1, 'NOUV', 'Nouvelle demande'),
+(2, 'DUP', 'Duplicata');
 
 -- ================================
 -- STATUT DEMANDE
