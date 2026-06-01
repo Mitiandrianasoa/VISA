@@ -323,6 +323,118 @@
             font-size: 12px;
         }
 
+        /* ── Modal aperçu PDF ── */
+        .pdf-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.75);
+            align-items: center;
+            justify-content: center;
+        }
+        .pdf-overlay.active { display: flex; }
+
+        .pdf-modal {
+            background: white;
+            border-radius: 12px;
+            width: 92vw;
+            max-width: 1150px;
+            height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+        }
+
+        .pdf-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: #1e3a5f;
+            color: white;
+            flex-shrink: 0;
+        }
+        .pdf-modal-header h3 { font-size: 15px; font-weight: 600; margin: 0; }
+        .pdf-modal-close {
+            background: none; border: none; color: white;
+            font-size: 26px; cursor: pointer; line-height: 1; padding: 0;
+        }
+        .pdf-modal-close:hover { color: #94a3b8; }
+
+        .pdf-modal-body { display: flex; flex: 1; overflow: hidden; }
+
+        .pdf-file-list {
+            width: 230px;
+            min-width: 230px;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        .pdf-list-title {
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .pdf-file-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background .15s;
+        }
+        .pdf-file-item:hover { background: #e2e8f0; }
+        .pdf-file-item.active {
+            background: #dbeafe;
+            border-left: 3px solid #4a90d9;
+            padding-left: 11px;
+        }
+        .pdf-item-name { font-size: 13px; color: #1e293b; font-weight: 500; word-break: break-all; }
+        .pdf-item-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+        .pdf-preview-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .pdf-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 16px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .pdf-nav-btn {
+            background: white; border: 1px solid #e2e8f0;
+            border-radius: 6px; padding: 6px 14px;
+            font-size: 13px; cursor: pointer; transition: background .15s;
+        }
+        .pdf-nav-btn:hover:not(:disabled) { background: #e2e8f0; }
+        .pdf-nav-btn:disabled { opacity: .4; cursor: not-allowed; }
+        .pdf-counter { font-size: 14px; font-weight: 600; color: #1e3a5f; }
+        .pdf-cur-name { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+        .pdf-preview-content {
+            flex: 1;
+            background: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+        .pdf-preview-content embed { width: 100%; height: 100%; border: none; display: block; }
+        .pdf-preview-content img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .pdf-empty-msg { color: white; text-align: center; padding: 40px; font-size: 14px; }
+        .pdf-empty-msg a { color: #93c5fd; }
+
+        @media (max-width: 768px) {
+            .pdf-file-list { width: 160px; min-width: 160px; }
+            .pdf-modal { width: 99vw; height: 95vh; }
+        }
+
         @media (max-width: 768px) {
             .photo-sig-grid { grid-template-columns: 1fr; }
 
@@ -384,6 +496,36 @@
         </ul>
     </aside>
     
+    <!-- Modal aperçu PDF -->
+    <div class="pdf-overlay" id="pdfOverlay" onclick="if(event.target===this)closePdfModal()">
+        <div class="pdf-modal">
+            <div class="pdf-modal-header">
+                <h3>Aperçu des fichiers scannés</h3>
+                <button class="pdf-modal-close" onclick="closePdfModal()">×</button>
+            </div>
+            <div class="pdf-modal-body">
+                <!-- Liste fichiers -->
+                <div class="pdf-file-list" id="pdfFileList">
+                    <div class="pdf-list-title">Fichiers</div>
+                </div>
+                <!-- Zone aperçu -->
+                <div class="pdf-preview-area">
+                    <div class="pdf-toolbar">
+                        <button class="pdf-nav-btn" id="btnPrev" onclick="prevFile()">← Précédent</button>
+                        <div style="text-align:center;">
+                            <div class="pdf-counter" id="pdfCounter">—</div>
+                            <div class="pdf-cur-name" id="pdfCurName"></div>
+                        </div>
+                        <button class="pdf-nav-btn" id="btnNext" onclick="nextFile()">Suivant →</button>
+                    </div>
+                    <div class="pdf-preview-content" id="previewContent">
+                        <div class="pdf-empty-msg">Sélectionnez un fichier dans la liste.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main class="main-content">
         <div class="content-wrapper">
             <div class="page-header">
@@ -496,6 +638,7 @@
             // Ajouter les boutons d'action
             html += '<div class="actions-bar">';
             html += '<button class="btn btn-primary" onclick="goToScan()">Aller au Scan</button>';
+            html += '<button class="btn btn-primary" style="background:#7c3aed;" onclick="openPdfPreview()">Aperçu PDF</button>';
             html += '<button class="btn btn-danger" onclick="generatePDF()">Générer PDF</button>';
             html += '<button class="btn btn-info" onclick="goToAttestation(' + demande.id + ')">Générer Attestation</button>';
             html += '<button class="btn btn-secondary" onclick="goBack()">Retour à la liste</button>';
@@ -643,6 +786,75 @@
         function goBack() {
             window.location.href = '/demande/liste';
         }
+
+        // ── Aperçu PDF ──
+        let scanFiles = [];
+        let currentFileIndex = 0;
+
+        function openPdfPreview() {
+            fetch(`/api/demandes/${currentDemandeId}/scan/files`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !data.data || data.data.length === 0) {
+                        showMessage('error', 'Aucun fichier scanné trouvé pour cette demande.');
+                        return;
+                    }
+                    scanFiles = data.data;
+                    currentFileIndex = 0;
+                    renderFileList();
+                    selectFile(0);
+                    document.getElementById('pdfOverlay').classList.add('active');
+                })
+                .catch(e => showMessage('error', 'Erreur chargement fichiers : ' + e.message));
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfOverlay').classList.remove('active');
+            document.getElementById('previewContent').innerHTML =
+                '<div class="pdf-empty-msg">Sélectionnez un fichier dans la liste.</div>';
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('pdfFileList');
+            const items = scanFiles.map((f, i) => {
+                const isPdf = f.typeFichier && f.typeFichier.includes('pdf');
+                const icon  = isPdf ? '📄' : '🖼️';
+                const size  = f.tailleFichier ? (f.tailleFichier / 1024).toFixed(1) + ' Ko' : '';
+                return `<div class="pdf-file-item ${i === currentFileIndex ? 'active' : ''}" onclick="selectFile(${i})">
+                    <div class="pdf-item-name">${icon} ${f.nomFichier}</div>
+                    <div class="pdf-item-meta">${f.typeFichier || ''} ${size ? '· ' + size : ''}</div>
+                </div>`;
+            }).join('');
+            list.innerHTML = '<div class="pdf-list-title">Fichiers (' + scanFiles.length + ')</div>' + items;
+        }
+
+        function selectFile(index) {
+            currentFileIndex = index;
+            const f = scanFiles[index];
+
+            document.querySelectorAll('.pdf-file-item').forEach((el, i) =>
+                el.classList.toggle('active', i === index));
+
+            document.getElementById('pdfCounter').textContent = (index + 1) + ' / ' + scanFiles.length;
+            document.getElementById('pdfCurName').textContent = f.nomFichier;
+            document.getElementById('btnPrev').disabled = index === 0;
+            document.getElementById('btnNext').disabled = index === scanFiles.length - 1;
+
+            const viewUrl = `/api/demandes/scan/${f.id}/view`;
+            const area = document.getElementById('previewContent');
+
+            if (f.typeFichier && f.typeFichier.includes('pdf')) {
+                area.innerHTML = `<embed src="${viewUrl}" type="application/pdf" width="100%" height="100%"/>`;
+            } else if (f.typeFichier && f.typeFichier.startsWith('image/')) {
+                area.innerHTML = `<img src="${viewUrl}" alt="${f.nomFichier}" style="max-width:100%;max-height:100%;object-fit:contain;"/>`;
+            } else {
+                area.innerHTML = `<div class="pdf-empty-msg">Aperçu non disponible pour ce type de fichier.<br>
+                    <a href="${viewUrl}" target="_blank">Télécharger le fichier</a></div>`;
+            }
+        }
+
+        function prevFile() { if (currentFileIndex > 0) selectFile(currentFileIndex - 1); }
+        function nextFile() { if (currentFileIndex < scanFiles.length - 1) selectFile(currentFileIndex + 1); }
 
         function showMessage(type, message) {
             const messageContainer = document.getElementById('messageContainer');

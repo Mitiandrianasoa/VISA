@@ -74,6 +74,12 @@ public class ScanFileService {
         return convertToDTO(scanFile);
     }
 
+    @Transactional(readOnly = true)
+    public ScanFile getScanFileById(Integer scanFileId) {
+        return scanFileRepository.findById(scanFileId)
+                .orElseThrow(() -> new IllegalArgumentException("Fichier non trouvé : " + scanFileId));
+    }
+
     public List<ScanFileDTO> getScanFilesByDemandeId(Integer demandeId) {
         return scanFileRepository.findByDemandeId(demandeId).stream()
                 .map(this::convertToDTO)

@@ -10,8 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.visa.entities.ScanFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +123,28 @@ public class ScanFileController {
             return ResponseEntity.badRequest().body(new Object() {
                 public boolean success = false;
                 public String message = "Erreur lors de la génération du PDF: " + e.getMessage();
+            });
+        }
+    }
+
+    @GetMapping("/scan/{scanFileId}/view")
+    public ResponseEntity<?> viewScanFile(@PathVariable Integer scanFileId) {
+        try {
+            ScanFile sf = scanFileService.getScanFileById(scanFileId);
+            Path filePath = Paths.get(sf.getCheminFichier());
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+            byte[] content = Files.readAllBytes(filePath);
+            String contentType = sf.getTypeFichier() != null ? sf.getTypeFichier() : "application/octet-stream";
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + sf.getNomFichier() + "\"")
+                    .body(content);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = e.getMessage();
             });
         }
     }
