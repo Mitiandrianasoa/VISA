@@ -239,8 +239,93 @@
             margin-top: 0;
             border-bottom: none;
         }
-        
+
+        .photo-sig-section {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .photo-sig-section h2 {
+            border-bottom: 2px solid #4a90d9;
+            margin-top: 0;
+        }
+
+        .capture-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .capture-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .capture-box h3 {
+            color: #1e3a5f;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        #webcamVideo, #photoPreview {
+            width: 100%;
+            max-width: 280px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        #signatureCanvas {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: crosshair;
+            background: white;
+            touch-action: none;
+        }
+
+        .capture-status {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-ok { color: #10b981; }
+        .status-missing { color: #ef4444; }
+
+        .btn-capture {
+            background-color: #1e3a5f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 6px 4px 0;
+            transition: background 0.2s;
+        }
+
+        .btn-capture:hover { background-color: #2c5282; }
+
+        .btn-clear-sig {
+            background-color: #64748b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 6px 4px 0;
+        }
+
         @media (max-width: 768px) {
+            .capture-grid { grid-template-columns: 1fr; }
+
             .sidebar {
                 width: 60px;
                 padding: 10px 0;
@@ -307,13 +392,9 @@
             </div>
             
             <div class="card">
-                <form id="demandeForm" method="post" action="/demande/soumettre">
-<div class="container">
-    <h1>Demande de Nouveau Titre</h1>
+                <form id="demandeForm">
 
-    <form id="demandeForm" method="post" action="/demande/soumettre">
-
-        <h2>Type de Demande</h2>
+                    <h2>Type de Demande</h2>
         <div class="form-row">
             <div class="form-group">
                 <label for="idTypeVisa">Type de visa demandé *</label>
@@ -452,9 +533,42 @@
                         <p style="color: #64748b;">Veuillez d'abord sélectionner un type de visa pour voir les pièces requises.</p>
                     </div>
 
+                    <!-- Photo & Signature -->
+                    <div class="photo-sig-section">
+                        <h2>Photo &amp; Signature <span style="color:#ef4444">*</span></h2>
+                        <p style="color:#64748b; font-size:13px; margin-bottom:10px;">La photo et la signature sont obligatoires pour créer le dossier.</p>
+                        <div class="capture-grid">
+                            <!-- Webcam -->
+                            <div class="capture-box">
+                                <h3>📷 Photo du demandeur</h3>
+                                <div id="webcamArea">
+                                    <video id="webcamVideo" autoplay playsinline style="display:none; width:100%; max-width:280px; border-radius:6px;"></video>
+                                    <img id="photoPreview" style="display:none; width:100%; max-width:280px; border-radius:6px;" alt="Photo capturée"/>
+                                    <div id="webcamPlaceholder" style="background:#f1f5f9; border-radius:6px; padding:30px; color:#94a3b8; font-size:13px;">
+                                        Cliquez sur "Activer la webcam"
+                                    </div>
+                                </div>
+                                <div style="margin-top:10px;">
+                                    <button type="button" class="btn-capture" id="startWebcamBtn" onclick="startWebcam()">Activer la webcam</button>
+                                    <button type="button" class="btn-capture" id="captureBtn" onclick="capturePhoto()" style="display:none;">Capturer</button>
+                                    <button type="button" class="btn-capture" id="retakeBtn" onclick="retakePhoto()" style="display:none;">Reprendre</button>
+                                </div>
+                                <div id="photoStatus" class="capture-status status-missing">Photo manquante</div>
+                            </div>
+                            <!-- Signature -->
+                            <div class="capture-box">
+                                <h3>✍️ Signature du demandeur</h3>
+                                <canvas id="signatureCanvas" width="280" height="150"></canvas>
+                                <div style="margin-top:10px;">
+                                    <button type="button" class="btn-clear-sig" onclick="clearSignature()">Effacer</button>
+                                </div>
+                                <div id="signatureStatus" class="capture-status status-missing">Signature manquante</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="margin-top: 25px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary">Soumettre la demande</button>
-                        <!-- <button type="button" class="btn btn-secondary" onclick="genererQRCode()">Générer QR Code</button> -->
                     </div>
                 </form>
             </div>
@@ -473,7 +587,137 @@
 
 <script>
     let selectedDemandeur = null;
+    let capturedPhoto = null;
+    let webcamStream = null;
 
+    // ── Webcam ──────────────────────────────────────────────────────────────
+    function startWebcam() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                webcamStream = stream;
+                const video = document.getElementById('webcamVideo');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                document.getElementById('webcamPlaceholder').style.display = 'none';
+                document.getElementById('startWebcamBtn').style.display = 'none';
+                document.getElementById('captureBtn').style.display = 'inline-block';
+            })
+            .catch(() => alert('Impossible d\'accéder à la webcam. Vérifiez les permissions.'));
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('webcamVideo');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 240;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        capturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
+
+        const preview = document.getElementById('photoPreview');
+        preview.src = capturedPhoto;
+        preview.style.display = 'block';
+        video.style.display = 'none';
+
+        if (webcamStream) {
+            webcamStream.getTracks().forEach(t => t.stop());
+            webcamStream = null;
+        }
+
+        document.getElementById('captureBtn').style.display = 'none';
+        document.getElementById('retakeBtn').style.display = 'inline-block';
+        document.getElementById('photoStatus').textContent = 'Photo capturée ✓';
+        document.getElementById('photoStatus').className = 'capture-status status-ok';
+    }
+
+    function retakePhoto() {
+        capturedPhoto = null;
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('webcamPlaceholder').style.display = 'block';
+        document.getElementById('retakeBtn').style.display = 'none';
+        document.getElementById('startWebcamBtn').style.display = 'inline-block';
+        document.getElementById('photoStatus').textContent = 'Photo manquante';
+        document.getElementById('photoStatus').className = 'capture-status status-missing';
+    }
+
+    // ── Signature Pad ────────────────────────────────────────────────────────
+    (function initSignaturePad() {
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            if (e.touches) {
+                return {
+                    x: (e.touches[0].clientX - rect.left) * scaleX,
+                    y: (e.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDraw(e) {
+            e.preventDefault();
+            drawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = '#1e3a5f';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            updateSignatureStatus();
+        }
+
+        function endDraw() { drawing = false; }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mouseleave', endDraw);
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', endDraw);
+    })();
+
+    function clearSignature() {
+        const canvas = document.getElementById('signatureCanvas');
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('signatureStatus').textContent = 'Signature manquante';
+        document.getElementById('signatureStatus').className = 'capture-status status-missing';
+    }
+
+    function updateSignatureStatus() {
+        const canvas = document.getElementById('signatureCanvas');
+        const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+        const hasContent = Array.from(pixels).some((v, i) => i % 4 === 3 && v > 0);
+        const el = document.getElementById('signatureStatus');
+        if (hasContent) {
+            el.textContent = 'Signature enregistrée ✓';
+            el.className = 'capture-status status-ok';
+        }
+    }
+
+    function getSignatureData() {
+        const canvas = document.getElementById('signatureCanvas');
+        const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+        const hasContent = Array.from(pixels).some((v, i) => i % 4 === 3 && v > 0);
+        return hasContent ? canvas.toDataURL('image/png') : null;
+    }
+
+    // ── Formulaire existant ──────────────────────────────────────────────────
     function toggleVisaTransformable() {
         const checkbox = document.getElementById('hasVisaTransformable');
         const fields = document.getElementById('visaTransformableFields');
@@ -484,11 +728,9 @@
         const typeDemande = document.getElementById('idTypeDemande').value;
         const searchSection = document.getElementById('searchSection');
         const visaTransformableSection = document.querySelector('.visa-transformable-section');
-        
-        // Si type de demande = Duplicata (id=2), afficher la section de recherche
+
         if (typeDemande === '2') {
             searchSection.style.display = 'block';
-            // Si aucun demandeur sélectionné, afficher visa transformable (nouveau demandeur)
             if (!selectedDemandeur && visaTransformableSection) {
                 visaTransformableSection.style.display = 'block';
             }
@@ -505,58 +747,47 @@
         const nom = document.getElementById('searchNom').value;
         const prenom = document.getElementById('searchPrenom').value;
         const resultsContainer = document.getElementById('searchResults');
-        
+
         if (!nom || !prenom) {
             resultsContainer.innerHTML = '<p style="color: #ef4444;">Veuillez entrer le nom et le prénom.</p>';
             return;
         }
-        
+
         fetch('http://localhost:8000/api/demandes/demandeurs/recherche?nom=' + encodeURIComponent(nom) + '&prenom=' + encodeURIComponent(prenom))
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    let html = '<p style="color: #065f46; margin-bottom: 10px;">' + data.length + ' demandeur(s) trouvé(s)</p>';
-                    data.forEach(demandeur => {
-                        html += '<div style="padding: 10px; background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 5px; cursor: pointer;" onclick="selectionnerDemandeur(' + demandeur.id + ', \'' + demandeur.nom + '\', \'' + demandeur.prenom + '\')">';
-                        html += '<strong>' + demandeur.nom + ' ' + demandeur.prenom + '</strong><br>';
-                        html += '<small>Nationalité: ' + (demandeur.idNationalite ? demandeur.idNationalite.libelle : 'N/A') + '</small>';
+                    let html = '<p style="color:#065f46; margin-bottom:10px;">' + data.length + ' demandeur(s) trouvé(s)</p>';
+                    data.forEach(d => {
+                        html += '<div style="padding:10px;background:white;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:5px;cursor:pointer;" onclick="selectionnerDemandeur(' + d.id + ',\'' + d.nom + '\',\'' + d.prenom + '\')">';
+                        html += '<strong>' + d.nom + ' ' + d.prenom + '</strong><br>';
+                        html += '<small>Nationalité: ' + (d.idNationalite ? d.idNationalite.libelle : 'N/A') + '</small>';
                         html += '</div>';
                     });
                     resultsContainer.innerHTML = html;
                 } else {
-                    resultsContainer.innerHTML = '<p style="color: #64748b;">Aucun demandeur trouvé. Veuillez remplir le formulaire complet.</p>';
+                    resultsContainer.innerHTML = '<p style="color:#64748b;">Aucun demandeur trouvé.</p>';
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                resultsContainer.innerHTML = '<p style="color: #ef4444;">Erreur lors de la recherche.</p>';
-            });
+            .catch(() => { resultsContainer.innerHTML = '<p style="color:#ef4444;">Erreur lors de la recherche.</p>'; });
     }
 
     function selectionnerDemandeur(id, nom, prenom) {
         selectedDemandeur = id;
-        document.getElementById('searchResults').innerHTML = '<p style="color: #065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
-        
-        // Cacher la section visa transformable car on utilise le passeport existant
-        const visaTransformableSection = document.querySelector('.visa-transformable-section');
-        if (visaTransformableSection) {
-            visaTransformableSection.style.display = 'none';
-        }
-        // Vider les champs du visa transformable
+        document.getElementById('searchResults').innerHTML = '<p style="color:#065f46;">Demandeur sélectionné: ' + nom + ' ' + prenom + '</p>';
+
+        const visaSection = document.querySelector('.visa-transformable-section');
+        if (visaSection) visaSection.style.display = 'none';
         document.getElementById('hasVisaTransformable').checked = false;
         document.getElementById('visaTransformableFields').style.display = 'none';
-        document.getElementById('visaNumero').value = '';
-        document.getElementById('visaDateEntree').value = '';
-        document.getElementById('visaLieuEntree').value = '';
-        document.getElementById('visaNumeroTransformable').value = '';
-        document.getElementById('visaDateSortie').value = '';
-        
-        // Charger les données du demandeur et pré-remplir le formulaire
+        ['visaNumero','visaDateEntree','visaLieuEntree','visaNumeroTransformable','visaDateSortie'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+
         fetch('http://localhost:8000/api/demandes/demandeurs/' + id)
-            .then(response => response.json())
+            .then(r => r.json())
             .then(demandeur => {
                 if (demandeur) {
-                    // Pré-remplir les informations du demandeur
                     document.getElementById('nom').value = demandeur.nom || '';
                     document.getElementById('prenom').value = demandeur.prenom || '';
                     document.getElementById('dateNaissance').value = demandeur.dateNaissance || '';
@@ -565,149 +796,133 @@
                     document.getElementById('adresseMada').value = demandeur.adresseMada || '';
                     document.getElementById('contact').value = demandeur.contact || '';
                     document.getElementById('email').value = demandeur.email || '';
-                    
-                    // Charger les passeports du demandeur
+
                     fetch('http://localhost:8000/api/demandes/demandeurs/' + id + '/passeports')
-                        .then(response => response.json())
+                        .then(r => r.json())
                         .then(passeports => {
                             if (passeports && passeports.length > 0) {
-                                const dernierPasseport = passeports[passeports.length - 1];
-                                document.getElementById('numeroPasseport').value = dernierPasseport.numero || '';
-                                document.getElementById('dateDelivrancePasseport').value = dernierPasseport.dateDelivrance || '';
-                                document.getElementById('dateExpirationPasseport').value = dernierPasseport.dateExpiration || '';
+                                const p = passeports[passeports.length - 1];
+                                document.getElementById('numeroPasseport').value = p.numero || '';
+                                document.getElementById('dateDelivrancePasseport').value = p.dateDelivrance || '';
+                                document.getElementById('dateExpirationPasseport').value = p.dateExpiration || '';
                             }
-                        })
-                        .catch(error => {
-                            console.error('Error loading passeports:', error);
                         });
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
-    }
-
-    function genererQRCode() {
-        alert('Fonctionnalité de génération de QR Code à implémenter');
     }
 
     function loadPieces() {
         const typeVisaId = document.getElementById('idTypeVisa').value;
         const container = document.getElementById('piecesContainer');
-
         if (!typeVisaId) {
-            container.innerHTML = '<p style="color: #64748b;">Veuillez d\'abord sélectionner un type de visa pour voir les pièces requises.</p>';
+            container.innerHTML = '<p style="color:#64748b;">Veuillez d\'abord sélectionner un type de visa.</p>';
             return;
         }
-
         fetch('http://localhost:8000/api/demandes/pieces/' + typeVisaId)
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                console.log('Données pièces reçues:', data);
                 if (data && data.length > 0) {
-                    var html = '';
-                    data.forEach(function(piece) {
-                        console.log('Pièce:', piece);
-                        var obligatoireClass = piece.obligatoire ? 'obligatoire' : '';
-                        var label = piece.libelle || piece.code || 'Sans nom';
-                        var facultatifText = piece.obligatoire ? '' : ' (facultatif)';
-                        html += '<div class="checkbox-item ' + obligatoireClass + '">' +
-                            '<input type="checkbox" name="pieceIds" value="' + piece.id + '" id="piece_' + piece.id + '">' +
-                            '<label for="piece_' + piece.id + '">' + label + facultatifText + '</label>' +
-                            '</div>';
+                    let html = '';
+                    data.forEach(piece => {
+                        const cls = piece.obligatoire ? 'obligatoire' : '';
+                        const label = piece.libelle || piece.code || 'Sans nom';
+                        const opt = piece.obligatoire ? '' : ' (facultatif)';
+                        html += '<div class="checkbox-item ' + cls + '">'
+                            + '<input type="checkbox" name="pieceIds" value="' + piece.id + '" id="piece_' + piece.id + '">'
+                            + '<label for="piece_' + piece.id + '">' + label + opt + '</label>'
+                            + '</div>';
                     });
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<p style="color: #64748b;">Aucune pièce requise pour ce type de visa.</p>';
+                    container.innerHTML = '<p style="color:#64748b;">Aucune pièce requise pour ce type de visa.</p>';
                 }
             })
-            .catch(error => {
-                container.innerHTML = '<p style="color: #ef4444;">Erreur lors du chargement des pièces.</p>';
-                console.error('Error:', error);
-            });
+            .catch(() => { container.innerHTML = '<p style="color:#ef4444;">Erreur lors du chargement des pièces.</p>'; });
     }
 
+    // ── Soumission ───────────────────────────────────────────────────────────
     document.getElementById('demandeForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        // Validation photo + signature
+        const photo = capturedPhoto;
+        const signature = getSignatureData();
+        if (!photo) {
+            alert('Veuillez capturer la photo du demandeur avant de soumettre.');
+            return;
+        }
+        if (!signature) {
+            alert('Veuillez signer dans le cadre de signature avant de soumettre.');
+            return;
+        }
+
         const formData = new FormData(this);
         const data = {};
-
         formData.forEach((value, key) => {
             if (key.startsWith('visa.')) {
-                if (!data.visaTransformable) {
-                    data.visaTransformable = {};
-                }
-                const visaKey = key.substring(5);
-                data.visaTransformable[visaKey] = value;
+                if (!data.visaTransformable) data.visaTransformable = {};
+                data.visaTransformable[key.substring(5)] = value;
             } else if (key === 'pieceIds') {
-                if (!data.pieceIds) {
-                    data.pieceIds = [];
-                }
+                if (!data.pieceIds) data.pieceIds = [];
                 data.pieceIds.push(parseInt(value));
             } else {
                 data[key] = value;
             }
         });
 
-        // Convertir les IDs en entiers
         if (data.idNationalite) data.idNationalite = parseInt(data.idNationalite);
         if (data.idSituationFamiliale) data.idSituationFamiliale = parseInt(data.idSituationFamiliale);
         if (data.idTypeVisa) data.idTypeVisa = parseInt(data.idTypeVisa);
         if (data.idTypeDemande) data.idTypeDemande = parseInt(data.idTypeDemande);
-        if (data.idDemandeur) data.idDemandeur = parseInt(data.idDemandeur);
-
-        // Ajouter l'ID du demandeur si sélectionné (pour duplicata)
         if (selectedDemandeur) {
             data.idDemandeur = selectedDemandeur;
-            // Pour un duplicata avec demandeur existant, on utilise le passeport existant, donc on ne crée pas de nouveau visa transformable
             delete data.visaTransformable;
         }
 
-        console.log('Données envoyées:', data);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Soumission en cours...';
+
+        // Étape 1 : créer la demande
         fetch('http://localhost:8000/api/demandes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
+        .then(r => r.json())
+        .then(result => {
+            if (!result.success) throw new Error(result.message);
+            const demandeId = result.id;
+
+            // Étape 2 : enregistrer photo + signature
+            return fetch('http://localhost:8000/api/demandes/' + demandeId + '/document', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photo: photo, signature: signature })
             })
-             .then(result => {
-                console.log('Result:', result);
-                if (result.success) {
-                    const numeroDemande = result.id;
-                    const numeroPasseport = data.numeroPasseport;
-
-                    const qrUrl = '/api/qrcode/generate-demande'
-                        + '?numeroPasseport=' + encodeURIComponent(numeroPasseport)
-                        + '&numeroDemande=' + encodeURIComponent(numeroDemande)
-                        + '&size=300';
-
-                    const qrSection = document.getElementById('qrSection');
-                    const qrImage = document.getElementById('qrImage');
-                    const qrInfo = document.getElementById('qrInfo');
-                    const qrDownloadLink = document.getElementById('qrDownloadLink');
-
-                    // Cacher le formulaire
-                    document.getElementById('demandeForm').style.display = 'none';
-                    
-                    // Afficher la section QR
-                    qrInfo.textContent = 'Demande #' + numeroDemande + ' - Passeport: ' + numeroPasseport;
-                    qrImage.src = qrUrl;
-                    qrDownloadLink.href = qrUrl;
-                    qrSection.style.display = 'block';
-                } else {
-                    alert('Erreur: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Erreur lors de la soumission: ' + error.message);
+            .then(r => r.json())
+            .then(docResult => {
+                if (!docResult.success) throw new Error(docResult.message);
+                return { demandeId, numeroPasseport: data.numeroPasseport };
             });
+        })
+        .then(({ demandeId, numeroPasseport }) => {
+            // Afficher le QR code
+            document.getElementById('demandeForm').style.display = 'none';
+            const qrUrl = '/api/qrcode/generate-demande'
+                + '?numeroPasseport=' + encodeURIComponent(numeroPasseport || '')
+                + '&numeroDemande=' + encodeURIComponent(demandeId)
+                + '&size=300';
+            document.getElementById('qrInfo').textContent = 'Demande #' + demandeId + ' — Dossier créé avec succès';
+            document.getElementById('qrImage').src = qrUrl;
+            document.getElementById('qrDownloadLink').href = qrUrl;
+            document.getElementById('qrSection').style.display = 'block';
+        })
+        .catch(error => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Soumettre la demande';
+            alert('Erreur : ' + error.message);
+        });
     });
 </script>
 </body>

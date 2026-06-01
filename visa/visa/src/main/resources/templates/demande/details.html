@@ -286,8 +286,46 @@
             background-color: #d1fae5;
             color: #065f46;
         }
-        
+
+        .photo-sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .photo-sig-box {
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .photo-sig-box h3 {
+            font-size: 14px;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+
+        .photo-sig-box img {
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .badge-missing {
+            display: inline-block;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
         @media (max-width: 768px) {
+            .photo-sig-grid { grid-template-columns: 1fr; }
+
             .sidebar {
                 width: 60px;
                 padding: 10px 0;
@@ -363,6 +401,14 @@
                 </div>
             </div>
             
+            <!-- Section Photo & Signature -->
+            <div class="card">
+                <h2>Photo &amp; Signature</h2>
+                <div id="photoSignatureContainer">
+                    <div class="loading">Chargement...</div>
+                </div>
+            </div>
+
             <!-- Section Historique -->
             <div class="card">
                 <h2>Historique des Changements</h2>
@@ -399,18 +445,17 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Récupérer l'ID de la demande depuis l'URL
             const urlParams = new URLSearchParams(window.location.search);
             currentDemandeId = urlParams.get('id');
-            
+
             if (!currentDemandeId) {
                 showMessage('error', 'ID de demande manquant');
                 return;
             }
-            
-            // Charger les détails et l'historique
+
             loadDetails();
             loadHistorique();
+            loadPhotoSignature();
         });
 
         function loadDetails() {
@@ -452,6 +497,7 @@
             html += '<div class="actions-bar">';
             html += '<button class="btn btn-primary" onclick="goToScan()">Aller au Scan</button>';
             html += '<button class="btn btn-danger" onclick="generatePDF()">Générer PDF</button>';
+            html += '<button class="btn btn-info" onclick="goToAttestation(' + demande.id + ')">Générer Attestation</button>';
             html += '<button class="btn btn-secondary" onclick="goBack()">Retour à la liste</button>';
             
             const estEnAttente = demande.idStatut && demande.idStatut.id === 1;
@@ -495,6 +541,42 @@
                     console.error('Error:', error);
                     container.innerHTML = '<div class="error">Erreur lors du chargement de l\'historique: ' + error.message + '</div>';
                 });
+        }
+
+        function loadPhotoSignature() {
+            const container = document.getElementById('photoSignatureContainer');
+            fetch(`http://localhost:8000/api/demandes/${currentDemandeId}/document`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        container.innerHTML = '<p style="color:#64748b;">Aucun document trouvé.</p>';
+                        return;
+                    }
+                    const photoHtml = data.photo
+                        ? `<img src="${data.photo}" alt="Photo du demandeur" style="max-width:160px; max-height:200px;"/>`
+                        : `<span class="badge-missing">Aucune photo</span>`;
+                    const sigHtml = data.signature
+                        ? `<img src="${data.signature}" alt="Signature" style="max-width:280px; max-height:120px;"/>`
+                        : `<span class="badge-missing">Aucune signature</span>`;
+                    container.innerHTML = `
+                        <div class="photo-sig-grid">
+                            <div class="photo-sig-box">
+                                <h3>📷 Photo</h3>
+                                ${photoHtml}
+                            </div>
+                            <div class="photo-sig-box">
+                                <h3>✍️ Signature</h3>
+                                ${sigHtml}
+                            </div>
+                        </div>`;
+                })
+                .catch(() => {
+                    container.innerHTML = '<p style="color:#64748b;">Impossible de charger la photo/signature.</p>';
+                });
+        }
+
+        function goToAttestation(id) {
+            window.location.href = '/demande/attestation?id=' + id;
         }
 
         function goToScan() {

@@ -167,6 +167,7 @@
             cursor: not-allowed;
             transform: none;
         }
+
         
         .btn-details {
             background-color: #6366f1;
@@ -441,6 +442,7 @@
             <div class="actions-bar">
                 <a href="/demande/nouveau" class="btn btn-primary">Nouvelle Demande</a>
             </div>
+
             
             <div id="messageContainer" class="message-container"></div>
             
@@ -539,7 +541,7 @@
                         html += '</tr>';
                         html += '</thead>';
                         html += '<tbody>';
-                        
+
                         data.forEach(function(demande) {
                             const demandeur = getDemandeur(demande);
                             const nom = demandeur ? demandeur.nom : 'Non renseigné';
@@ -549,7 +551,7 @@
                             const statut = demande.idStatut ? demande.idStatut.libelle : 'Non renseigné';
                             const isValidee = demande.idStatut && (demande.idStatut.id === 2 || demande.idStatut.id === 3 || demande.idStatut.id === 4);
                             const estEnAttente = demande.idStatut && demande.idStatut.id === 1;
-                            
+
                             html += '<tr>';
                             html += '<td><strong>' + demande.id + '</strong></td>';
                             html += '<td>' + nom + '</td>';
@@ -583,18 +585,6 @@
                 });
         }
 
-        function toggleSelectAll() {
-            const checkboxes = document.querySelectorAll('.demande-checkbox');
-            const selectAll = document.getElementById('selectAll');
-            checkboxes.forEach(cb => cb.checked = selectAll.checked);
-        }
-
-        function updateSelectAll() {
-            const checkboxes = document.querySelectorAll('.demande-checkbox');
-            const selectAll = document.getElementById('selectAll');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            selectAll.checked = allChecked;
-        }
 
         function showDetails(demandeId) {
             const demande = demandesData.find(d => d.id === demandeId);

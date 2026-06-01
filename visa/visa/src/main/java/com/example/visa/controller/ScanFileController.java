@@ -122,4 +122,53 @@ public class ScanFileController {
             });
         }
     }
+
+    @PostMapping("/bulk-zip")
+    public ResponseEntity<?> generateBulkZip(@RequestBody Map<String, List<Integer>> payload) {
+        try {
+            List<Integer> ids = payload.get("ids");
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest().body(new Object() {
+                    public boolean success = false;
+                    public String message = "Aucune demande sélectionnée";
+                });
+            }
+            byte[] zipContent = scanFileService.generateBulkZip(ids);
+            String fileName = "demandes_" + LocalDate.now() + ".zip";
+            ContentDisposition cd = ContentDisposition.attachment()
+                    .filename(fileName, StandardCharsets.UTF_8)
+                    .build();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+                    .contentType(MediaType.parseMediaType("application/zip"))
+                    .body(zipContent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = "Erreur: " + e.getMessage();
+            });
+        }
+    }
+
+    @GetMapping("/{demandeId}/attestation-pdf")
+    public ResponseEntity<?> generateAttestationPDF(@PathVariable Integer demandeId) {
+        try {
+            byte[] pdfContent = scanFileService.generateAttestationPDF(demandeId);
+
+            String fileName = "attestation_demande_" + demandeId + "_" + LocalDate.now() + ".pdf";
+            ContentDisposition contentDisposition = ContentDisposition.attachment()
+                    .filename(fileName, StandardCharsets.UTF_8)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new Object() {
+                public boolean success = false;
+                public String message = "Erreur lors de la génération de l'attestation PDF: " + e.getMessage();
+            });
+        }
+    }
 }

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attestation de Demande - Visa Madagascar</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .page-actions {
+            max-width: 850px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        .btn-primary   { background: #4a90d9; color: white; }
+        .btn-primary:hover { background: #3a7bc8; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+
+        /* ── Document officiel ── */
+        .attestation {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #1e3a5f;
+            border-radius: 4px;
+            padding: 40px 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        /* En-tête */
+        .doc-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #1e3a5f;
+            margin-bottom: 25px;
+        }
+
+        .doc-header .logo-left {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .doc-header .title-center {
+            text-align: center;
+        }
+
+        .doc-header .title-center h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .doc-header .title-center h2 {
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            margin-top: 4px;
+        }
+
+        .doc-header .ref-right {
+            text-align: right;
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.8;
+        }
+
+        .doc-number {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Corps principal */
+        .doc-body {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
+        .photo-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .photo-frame {
+            width: 140px;
+            height: 170px;
+            border: 2px solid #1e3a5f;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-frame .no-photo {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Informations */
+        .info-col h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 6px 10px;
+            margin-bottom: 18px;
+            font-size: 13px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .info-value {
+            color: #1e293b;
+        }
+
+        /* Section visa */
+        .visa-band {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid #1e3a5f;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
+        }
+
+        .visa-band h3 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .visa-band .visa-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .visa-item { text-align: center; }
+        .visa-item .v-label { font-size: 11px; color: #64748b; margin-bottom: 2px; }
+        .visa-item .v-value { font-weight: 700; color: #1e3a5f; font-size: 14px; }
+
+        /* Signature + QR */
+        .doc-footer-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 30px;
+            align-items: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .signature-block h4 {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .signature-img {
+            max-width: 220px;
+            max-height: 70px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .no-signature {
+            width: 220px;
+            height: 60px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .qr-block {
+            text-align: center;
+        }
+
+        .qr-block img {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qr-block p {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Bas de page */
+        .doc-stamp {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #94a3b8;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 12px;
+        }
+
+        .loading { text-align: center; padding: 60px; color: #64748b; font-size: 16px; }
+        .error { color: #991b1b; background: #fee2e2; border-radius: 8px; padding: 20px; text-align: center; }
+
+        /* Impression */
+        @media print {
+            body { background: white; padding: 0; }
+            .page-actions { display: none; }
+            .attestation { border: 2px solid #000; box-shadow: none; margin: 0; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-actions">
+        <a id="btnPdf" class="btn btn-primary" href="#" download>📄 Télécharger PDF</a>
+        <button class="btn btn-secondary" onclick="history.back()">← Retour</button>
+    </div>
+
+    <div id="loadingContainer" class="attestation">
+        <div class="loading">Chargement de l'attestation...</div>
+    </div>
+
+    <div id="attestationContainer" style="display:none;"></div>
+
+    <!-- Injection Thymeleaf isolée -->
+    <script th:inline="javascript">
+        window._demandeId = /*[[${demandeId}]]*/ null;
+    </script>
+
+    <script>
+        const demandeId = window._demandeId;
+
+        // Wire up PDF download link
+        if (demandeId) {
+            document.getElementById('btnPdf').href =
+                '/api/demandes/' + demandeId + '/attestation-pdf';
+        }
+
+        function fmt(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            if (isNaN(d)) return dateStr;
+            return d.toLocaleDateString('fr-FR');
+        }
+
+        function val(v) { return v || '—'; }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('http://localhost:8000/api/demandes/' + demandeId + '/attestation')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    if (!data.success) {
+                        document.getElementById('attestationContainer').innerHTML =
+                            '<div class="attestation"><div class="error">Erreur : ' + data.message + '</div></div>';
+                        document.getElementById('attestationContainer').style.display = 'block';
+                        return;
+                    }
+                    renderAttestation(data);
+                })
+                .catch(e => {
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('attestationContainer').innerHTML =
+                        '<div class="attestation"><div class="error">Impossible de charger les données.</div></div>';
+                    document.getElementById('attestationContainer').style.display = 'block';
+                });
+        });
+
+        function renderAttestation(data) {
+            const dem   = data.demande   || {};
+            const pers  = data.demandeur || {};
+            const pass  = data.passeport || {};
+            const visa  = data.visa      || null;
+            const photo = data.photo     || '';
+            const sig   = data.signature || '';
+
+            // QR code pointant vers le front
+            const qrUrl = '/api/qrcode/generate-demande'
+                + '?numeroDemande=' + encodeURIComponent(demandeId)
+                + '&numeroPasseport=' + encodeURIComponent(pass.numero || '')
+                + '&size=200';
+
+            // Date d'expiration : visa émis en priorité, sinon passeport
+            const dateExpLabel = visa ? 'Expiration visa' : 'Expiration passeport';
+            const dateExpValue = visa ? fmt(visa.dateFin) : fmt(pass.dateExpiration);
+
+            const html = `
+<div class="attestation">
+
+    <!-- En-tête -->
+    <div class="doc-header">
+        <div class="logo-left">
+            <strong>RÉPUBLIQUE DE MADAGASCAR</strong><br>
+            Ministère de l'Intérieur<br>
+            Direction de l'Immigration
+        </div>
+        <div class="title-center">
+            <h1>Attestation de Demande de Visa</h1>
+            <h2>${val(dem.typeVisa)} — ${val(dem.typeDemande)}</h2>
+        </div>
+        <div class="ref-right">
+            <span class="doc-number">N° ${demandeId}</span><br>
+            Émis le : ${fmt(dem.dateDemande)}<br>
+            Statut : <strong>${val(dem.statut)}</strong>
+        </div>
+    </div>
+
+    <!-- Corps -->
+    <div class="doc-body">
+        <!-- Photo -->
+        <div class="photo-col">
+            <div class="photo-frame">
+                ${photo
+                    ? `<img src="${photo}" alt="Photo du demandeur"/>`
+                    : `<div class="no-photo">Photo non disponible</div>`
+                }
+            </div>
+        </div>
+
+        <!-- Informations personnelles -->
+        <div class="info-col">
+            <h3>Informations du demandeur</h3>
+            <div class="info-grid">
+                <span class="info-label">Nom :</span>
+                <span class="info-value">${val(pers.nom)}</span>
+
+                <span class="info-label">Prénom :</span>
+                <span class="info-value">${val(pers.prenom)}</span>
+
+                <span class="info-label">Date de naissance :</span>
+                <span class="info-value">${fmt(pers.dateNaissance)}</span>
+
+                <span class="info-label">Nationalité :</span>
+                <span class="info-value">${val(pers.nationalite)}</span>
+
+                <span class="info-label">Situation familiale :</span>
+                <span class="info-value">${val(pers.situationFamiliale)}</span>
+
+                <span class="info-label">Adresse à Madagascar :</span>
+                <span class="info-value">${val(pers.adresseMada)}</span>
+
+                <span class="info-label">Contact :</span>
+                <span class="info-value">${val(pers.contact)}</span>
+
+                <span class="info-label">Email :</span>
+                <span class="info-value">${val(pers.email)}</span>
+            </div>
+
+            <h3>Passeport</h3>
+            <div class="info-grid">
+                <span class="info-label">Numéro :</span>
+                <span class="info-value">${val(pass.numero)}</span>
+
+                <span class="info-label">Date délivrance :</span>
+                <span class="info-value">${fmt(pass.dateDelivrance)}</span>
+
+                <span class="info-label">Date expiration :</span>
+                <span class="info-value">${fmt(pass.dateExpiration)}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bande visa -->
+    <div class="visa-band">
+        <h3>Informations du visa</h3>
+        <div class="visa-grid">
+            <div class="visa-item">
+                <div class="v-label">Type</div>
+                <div class="v-value">${val(dem.typeVisa)}</div>
+            </div>
+            ${visa ? `
+            <div class="visa-item">
+                <div class="v-label">Numéro visa</div>
+                <div class="v-value">${val(visa.numeroVisa)}</div>
+            </div>
+            <div class="visa-item">
+                <div class="v-label">Valable jusqu'au</div>
+                <div class="v-value">${fmt(visa.dateFin)}</div>
+            </div>
+            ` : `
+            <div class="visa-item">
+                <div class="v-label">Statut demande</div>
+                <div class="v-value">${val(dem.statut)}</div>
+            </div>
+            <div class="visa-item">
+                <div class="v-label">${dateExpLabel}</div>
+                <div class="v-value">${dateExpValue}</div>
+            </div>
+            `}
+        </div>
+    </div>
+
+    <!-- Signature + QR -->
+    <div class="doc-footer-grid">
+        <div class="signature-block">
+            <h4>Signature du demandeur</h4>
+            ${sig
+                ? `<img class="signature-img" src="${sig}" alt="Signature"/>`
+                : `<div class="no-signature">Signature non disponible</div>`
+            }
+        </div>
+        <div class="qr-block">
+            <img src="${qrUrl}" alt="QR Code"/>
+            <p>Scanner pour consulter<br>le dossier en ligne</p>
+        </div>
+    </div>
+
+    <!-- Bas de page -->
+    <div class="doc-stamp">
+        Document généré automatiquement par le Système de Gestion des Demandes de Visa Madagascar —
+        ${new Date().toLocaleDateString('fr-FR')}
+        — Ce document ne constitue pas un visa délivré.
+    </div>
+</div>`;
+
+            document.getElementById('attestationContainer').innerHTML = html;
+            document.getElementById('attestationContainer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

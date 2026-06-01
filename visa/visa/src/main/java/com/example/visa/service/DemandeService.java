@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +31,8 @@ public class DemandeService {
     private final PieceJustificativeRepository pieceJustificativeRepository;
     private final DemandePieceRepository demandePieceRepository;
     private final HistoriqueStatutDemandeRepository historiqueStatutDemandeRepository;
+    private final DocumentDemandeurRepository documentDemandeurRepository;
+    private final VisaRepository visaRepository;
 
     public List<Nationalite> getAllNationalites() {
         return nationaliteRepository.findAll();
@@ -286,5 +287,61 @@ public class DemandeService {
 
     public List<HistoriqueStatutDemande> getAllHistorique() {
         return historiqueStatutDemandeRepository.findAllOrderByDateUpdateDesc();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getAttestationData(Integer demandeId) {
+        Demande demande = getDemandeById(demandeId);
+        Demandeur demandeur = demande.getIdDemandeur();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        Map<String, Object> demandeMap = new LinkedHashMap<>();
+        demandeMap.put("id", demande.getId());
+        demandeMap.put("dateDemande", demande.getDateDemande() != null ? demande.getDateDemande().toString() : null);
+        demandeMap.put("statut", demande.getIdStatut() != null ? demande.getIdStatut().getLibelle() : null);
+        demandeMap.put("typeVisa", demande.getIdTypeVisa() != null ? demande.getIdTypeVisa().getLibelle() : null);
+        demandeMap.put("typeDemande", demande.getIdTypeDemande() != null ? demande.getIdTypeDemande().getLibelle() : null);
+        result.put("demande", demandeMap);
+
+        if (demandeur != null) {
+            Map<String, Object> demandeurMap = new LinkedHashMap<>();
+            demandeurMap.put("nom", demandeur.getNom());
+            demandeurMap.put("prenom", demandeur.getPrenom());
+            demandeurMap.put("dateNaissance", demandeur.getDateNaissance() != null ? demandeur.getDateNaissance().toString() : null);
+            demandeurMap.put("nationalite", demandeur.getIdNationalite() != null ? demandeur.getIdNationalite().getLibelle() : null);
+            demandeurMap.put("situationFamiliale", demandeur.getIdSituationFamiliale() != null ? demandeur.getIdSituationFamiliale().getLibelle() : null);
+            demandeurMap.put("adresseMada", demandeur.getAdresseMada());
+            demandeurMap.put("contact", demandeur.getContact());
+            demandeurMap.put("email", demandeur.getEmail());
+            result.put("demandeur", demandeurMap);
+
+            List<Passeport> passeports = passeportRepository.findByIdDemandeurId(demandeur.getId());
+            if (!passeports.isEmpty()) {
+                Passeport p = passeports.get(passeports.size() - 1);
+                Map<String, Object> passeportMap = new LinkedHashMap<>();
+                passeportMap.put("numero", p.getNumero());
+                passeportMap.put("dateDelivrance", p.getDateDelivrance() != null ? p.getDateDelivrance().toString() : null);
+                passeportMap.put("dateExpiration", p.getDateExpiration() != null ? p.getDateExpiration().toString() : null);
+                result.put("passeport", passeportMap);
+            }
+
+            documentDemandeurRepository.findByIdDemandeurId(demandeur.getId()).ifPresent(doc -> {
+                result.put("photo", doc.getPhoto() != null ? doc.getPhoto() : "");
+                result.put("signature", doc.getSignature() != null ? doc.getSignature() : "");
+            });
+        }
+
+        visaRepository.findByIdDemandeId(demandeId).ifPresent(visa -> {
+            Map<String, Object> visaMap = new LinkedHashMap<>();
+            visaMap.put("numeroVisa", visa.getNumeroVisa());
+            visaMap.put("dateDelivrance", visa.getDateDelivrance() != null ? visa.getDateDelivrance().toString() : null);
+            visaMap.put("dateDebut", visa.getDateDebut() != null ? visa.getDateDebut().toString() : null);
+            visaMap.put("dateFin", visa.getDateFin() != null ? visa.getDateFin().toString() : null);
+            result.put("visa", visaMap);
+        });
+
+        result.put("success", true);
+        return result;
     }
 }

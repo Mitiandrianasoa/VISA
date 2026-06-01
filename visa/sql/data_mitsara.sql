@@ -4,7 +4,7 @@
 
 -- STATUTS
 INSERT INTO statut_demande (id, code, libelle) VALUES
-(1, 'EN_ATTENTE', 'En attente'),
+(1, 'CREE', 'Dossier créé'),
 (2, 'VALIDE', 'Validée'),
 (3, 'APPROUVEE', 'Approuvée'),
 (4, 'SCAN', 'Scan terminé');
@@ -46,11 +46,9 @@ INSERT INTO piece_justificative (id, code, libelle, commun, obligatoire) VALUES
 (12, 'AUTOR', 'Autorisation travail', false, false),
 (13, 'ATTEST', 'Attestation emploi', false, false);
 
--- LIAISON PIÈCES / TYPE VISA
-INSERT INTO piece_specifique_type_visa (id, id_type_visa, id_piece_justificative) VALUES
-(1, 1, 9), (2, 1, 10), (3, 1, 11), -- Investisseur
-(4, 2, 12), (5, 2, 13); -- Travailleur
-
+INSERT INTO piece_specifique_type_visa (id_type_visa, id_piece_justificative) VALUES
+(1, 9), (1, 10), (1, 11),  -- Investisseur (id_type_visa = 1)
+(2, 12), (2, 13);          -- Travailleur (id_type_visa = 2)
 -- ADMINISTRATEUR
 INSERT INTO administrateur (id, nom, mot_de_passe, email, login) VALUES
 (1, 'Admin', 'admin123', 'admin@visa.com', 'admin');

@@ -125,6 +125,15 @@ CREATE TABLE carte_resident (
     id_demande INTEGER NOT NULL UNIQUE REFERENCES demande(id)
 );
 
+CREATE TABLE document_demandeur (
+    id SERIAL PRIMARY KEY,
+    id_demandeur INTEGER NOT NULL REFERENCES demandeur(id) ON DELETE CASCADE,
+    photo TEXT,
+    signature TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Création des index pour optimiser les performances
 
 CREATE INDEX idx_demandeur_nationalite ON demandeur(id_nationalite);
@@ -141,22 +150,7 @@ CREATE INDEX idx_historique_statut ON historique_statut_demande(id_statut_demand
 CREATE INDEX idx_piece_specifique_type ON piece_specifique_type_visa(id_type_visa);
 CREATE INDEX idx_demande_piece_demande ON demande_piece(id_demande);
 
--- Création des triggers pour mettre à jour automatiquement le statut dans demande
-
-CREATE OR REPLACE FUNCTION update_demande_statut()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE demande 
-    SET id_statut = NEW.id_statut_demande
-    WHERE id = NEW.id_demande;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_update_demande_statut
-AFTER INSERT ON historique_statut_demande
-FOR EACH ROW
-EXECUTE FUNCTION update_demande_statut();
+-- La mise à jour du statut est gérée directement par DemandeService.creerHistoriqueCentralise()
 
 -- Commentaires sur les tables
 

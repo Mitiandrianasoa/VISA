@@ -76,3 +76,15 @@ sprint 4: [frontend VUE]
         - demande ->  generation QR code -> 
         - liste des historique des demande et de status par rapport un numero de passeport(par ordre chronologique)/numero demande(cette deamnde afficher en premier).
         - utilisation API depuis notre  spring boot. 
+
+sprint 5:
+        -dans le formulaire de demande , je veux une fonctionnalité pour prendre une photo via webcam , et un signature via trackpad , et sauvegarder dans la base de données , 
+        -photo et signature faites -> staut= dossier créé 
+        -si la photo et signature ne sont pas créés le statut demande ne pourrait jamais devenir scan terminé 
+        -photo et signature seront affiches dans la fiche de demande 
+        -la photo et signature doit apparaitre dans le formulaire de demande
+        
+
+
+sprint 6:
+        -

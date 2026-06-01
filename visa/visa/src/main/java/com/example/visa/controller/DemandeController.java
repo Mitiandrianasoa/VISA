@@ -1,22 +1,14 @@
 package com.example.visa.controller;
 
 import com.example.visa.dto.DemandeDTO;
-import com.example.visa.entities.Demande;
-import com.example.visa.entities.Demandeur;
-import com.example.visa.entities.HistoriqueStatutDemande;
-import com.example.visa.entities.Nationalite;
-import com.example.visa.entities.Passeport;
-import com.example.visa.entities.PieceJustificative;
-import com.example.visa.entities.SituationFamiliale;
-import com.example.visa.entities.TypeVisa;
+import com.example.visa.entities.*;
 import com.example.visa.repository.HistoriqueStatutDemandeRepository;
 import com.example.visa.service.DemandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/demandes")
@@ -139,6 +131,15 @@ public class DemandeController {
                 public boolean success = false;
                 public String message = e.getMessage();
             });
+        }
+    }
+
+    @GetMapping("/{id}/attestation")
+    public ResponseEntity<?> getAttestationData(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(demandeService.getAttestationData(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 

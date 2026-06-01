@@ -16,7 +16,7 @@ INSERT INTO type_demande (id, code, libelle) VALUES
 -- STATUT DEMANDE
 -- ================================
 INSERT INTO statut_demande (id, code, libelle) VALUES
-(1, 'EN_ATTENTE', 'En attente'),
+(1, 'CREE', 'Dossier créé'),
 (2, 'VALIDE', 'Validée'),
 (3, 'APPROUVEE', 'Approuvée'),
 (4, 'SCAN', 'Scan terminé');
